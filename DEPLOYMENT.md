@@ -33,8 +33,11 @@
    - **Root Directory**: `backend`
    - **Environment**: `Node`
    - **Build Command**: `npm install --include=dev && npm run build`
-     - ⚠️ **IMPORTANT**: Make sure to use `--include=dev` to install TypeScript type definitions!
+     - ⚠️ **IMPORTANT**: 
+       - Make sure to use `--include=dev` to install TypeScript type definitions!
+       - **DO NOT** include `cd backend` since Root Directory is already set to `backend`
    - **Start Command**: `npm run start`
+     - ⚠️ **DO NOT** include `cd backend` here either!
    - **Plan**: Free
 
 ### Step 3: Set Environment Variables
