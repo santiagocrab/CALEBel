@@ -38,7 +38,7 @@ const PostChat = () => {
                     color: "text-warning",
                     bg: "bg-warning/10 border-warning/20",
                     title: "🔴 RECALIBRATE",
-                    desc: "Pay PHP 20 to re-enter the matching pool and try again with a new Ka-Label.",
+                    desc: "Pay PHP 15 to re-enter the matching pool and try again with a new Ka-Label.",
                   },
                   {
                     id: "end",
@@ -123,7 +123,7 @@ const PostChat = () => {
             </button>
             <p className="text-xs text-muted-foreground mt-3">
               {choice === "reveal" && "Your match must also choose Reveal for identities to be shared."}
-              {choice === "recalibrate" && "PHP 20 will be charged via GCash for re-entry."}
+              {choice === "recalibrate" && "PHP 15 will be charged via GCash for re-entry."}
               {choice === "end" && "This action is final and cannot be undone."}
             </p>
             {error && <p className="text-xs text-destructive mt-3">{error}</p>}

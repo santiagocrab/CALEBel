@@ -91,7 +91,7 @@ const Rematch = () => {
               Request Rematch
             </h1>
             <p className="text-wine-rose/70 font-body">
-              Not satisfied with your current match? Request a rematch for ₱20.00
+              Not satisfied with your current match? Request a rematch for ₱15.00
             </p>
           </div>
 
@@ -112,7 +112,7 @@ const Rematch = () => {
             <>
               {/* Payment Info */}
               <div className="mb-6 p-5 bg-gradient-to-br from-rose-pink/10 via-white/80 to-blush-pink/10 rounded-2xl border-[3px] border-rose-pink shadow-lg" style={{ borderColor: '#EE6983' }}>
-                <p className="text-lg font-semibold text-wine-rose mb-3 text-center">Rematch Fee: ₱20.00</p>
+                <p className="text-lg font-semibold text-wine-rose mb-3 text-center">Rematch Fee: ₱15.00</p>
                 <p className="text-sm font-semibold text-wine-rose mb-4 text-center">Scan QR Code to Pay via GCash</p>
                 <div className="flex justify-center mb-4">
                   <div className="p-4 bg-white rounded-xl border-[3px] shadow-lg" style={{ borderColor: '#EE6983' }}>

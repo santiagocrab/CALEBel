@@ -319,6 +319,7 @@ const StepIdentity = ({ data, update, onUpload, uploading, uploadError }: StepPr
             />
           </div>
         </div>
+        <p className="text-sm sm:text-base font-semibold text-wine-rose mb-2 text-center">Registration Fee: ₱30.00</p>
         <p className="text-xs sm:text-sm text-wine-rose/70 text-center mb-2">Transfer fees may apply.</p>
         <p className="text-xs sm:text-sm text-wine-rose font-semibold text-center">CALEBel</p>
       </div>
