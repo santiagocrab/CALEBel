@@ -16,44 +16,43 @@ const SECTIONS = [
 const Register = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
-  // Pre-filled sample data for easy debugging
   const [formData, setFormData] = useState<Record<string, any>>({
-    // Step 0: Identity - Pre-filled for debugging
-    name: "Juan Dela Cruz",
-    email: "juan.delacruz@wvsu.edu.ph",
-    dob: "2000-05-15",
-    college: "CICT",
-    course: "BS Information Technology",
-    year: "3rd Year",
-    gcash: "GCASH123456789",
+    // Step 0: Identity
+    name: "",
+    email: "",
+    dob: "",
+    college: "",
+    course: "",
+    year: "",
+    gcash: "",
     proof: "",
     proofUrl: "",
-    social: "https://facebook.com/juandelacruz",
+    social: "",
     // Step 1: Privacy
-    privacyMode: "full",
-    alias: "JuanDC",
+    privacyMode: "",
+    alias: "",
     // Step 2: SOGIE-SC
-    orientation: "Heterosexual",
-    genderIdentity: "Man",
-    genderExpression: "Masculine",
-    sexChar: "Male",
-    pronouns: "He/Him",
+    orientation: "",
+    genderIdentity: "",
+    genderExpression: "",
+    sexChar: "",
+    pronouns: "",
     // Step 3: Personality
-    zodiac: "Taurus",
-    mbti: "ENFP",
-    socialBattery: "Ambivert — depends on the mood",
-    loveLang_receive: ["Words of Affirmation", "Quality Time"],
-    loveLang_provide: ["Acts of Service", "Physical Touch"],
+    zodiac: "",
+    mbti: "",
+    socialBattery: "",
+    loveLang_receive: [],
+    loveLang_provide: [],
     // Step 4: Interests
-    vibes: ["Music & Bands", "Gaming", "Anime & Manga", "Tech & Coding"],
-    interestDetail: "I love playing Valorant, watching Studio Ghibli movies, and coding in my free time.",
-    prefCollege: "CICT",
-    prefYear: "3rd Year",
+    vibes: [],
+    interestDetail: "",
+    prefCollege: "",
+    prefYear: "",
     // Step 5: Terms
-    consent1: true,
-    consent2: true,
-    consent3: true,
-    consent4: true
+    consent1: false,
+    consent2: false,
+    consent3: false,
+    consent4: false
   });
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -180,7 +179,7 @@ const Register = () => {
                     // Validate required fields
                     if (!formData.name || !formData.email || !formData.dob || !formData.college || 
                         !formData.course || !formData.year || !formData.gcash || !formData.proofUrl ||
-                        !formData.alias || !formData.orientation || !formData.genderIdentity ||
+                        !formData.privacyMode || !formData.alias || !formData.orientation || !formData.genderIdentity ||
                         !formData.zodiac || !formData.mbti || !formData.socialBattery ||
                         (!formData.loveLang_receive || formData.loveLang_receive.length === 0) ||
                         (!formData.loveLang_provide || formData.loveLang_provide.length === 0) ||
@@ -291,9 +290,9 @@ const StepIdentity = ({ data, update, onUpload, uploading, uploadError }: StepPr
     <h2 className="font-display text-xl font-bold text-foreground mb-1">Section 1: Identity Verification</h2>
     <p className="text-xs text-muted-foreground mb-4">Please use your WVSU email for verification.</p>
     <div className="grid sm:grid-cols-2 gap-4">
-      <div><label htmlFor="name" className={labelClass}>Full Name</label><input id="name" name="name" autoComplete="name" className={inputClass} placeholder="Juan Dela Cruz" value={data.name || ""} onChange={(e) => update("name", e.target.value)} /></div>
-      <div><label htmlFor="email" className={labelClass}>WVSU Email</label><input id="email" name="email" type="email" autoComplete="email" className={inputClass} placeholder="you@wvsu.edu.ph" value={data.email || ""} onChange={(e) => update("email", e.target.value)} /></div>
-      <div><label htmlFor="dob" className={labelClass}>Date of Birth</label><input id="dob" name="dob" type="date" autoComplete="bday" className={inputClass} value={data.dob || ""} onChange={(e) => update("dob", e.target.value)} /></div>
+      <div><label htmlFor="name" className={labelClass}>Full Name <span className="text-destructive">*</span></label><input id="name" name="name" autoComplete="name" className={inputClass} placeholder="Juan Dela Cruz" value={data.name || ""} onChange={(e) => update("name", e.target.value)} required /></div>
+      <div><label htmlFor="email" className={labelClass}>WVSU Email <span className="text-destructive">*</span></label><input id="email" name="email" type="email" autoComplete="email" className={inputClass} placeholder="you@wvsu.edu.ph" value={data.email || ""} onChange={(e) => update("email", e.target.value)} required /></div>
+      <div><label htmlFor="dob" className={labelClass}>Date of Birth <span className="text-destructive">*</span></label><input id="dob" name="dob" type="date" autoComplete="bday" className={inputClass} value={data.dob || ""} onChange={(e) => update("dob", e.target.value)} required /></div>
       <div><label htmlFor="college" className={labelClass}>College <span className="text-destructive">*</span></label>
         <select id="college" name="college" className={selectClass} value={data.college || ""} onChange={(e) => update("college", e.target.value)} required>
           <option value="">Select college</option>
@@ -328,7 +327,7 @@ const StepIdentity = ({ data, update, onUpload, uploading, uploadError }: StepPr
       <p className="text-xs text-muted-foreground mt-1">Enter the reference number from your GCash payment</p>
     </div>
     <div>
-      <label htmlFor="proofOfPayment" className={labelClass}>Proof of Payment</label>
+      <label htmlFor="proofOfPayment" className={labelClass}>Proof of Payment <span className="text-destructive">*</span></label>
       <label htmlFor="proofOfPayment" className="flex items-center justify-center gap-2 w-full py-8 rounded-xl border-2 border-dashed border-border hover:border-gold/40 cursor-pointer transition-colors bg-muted/50">
         <Upload className="w-5 h-5 text-muted-foreground" />
         <span className="text-sm text-muted-foreground">{uploading ? "Uploading..." : "Click to upload screenshot"}</span>
@@ -339,10 +338,12 @@ const StepIdentity = ({ data, update, onUpload, uploading, uploadError }: StepPr
           accept="image/*" 
           className="hidden" 
           onChange={(e) => onUpload?.(e.target.files?.[0])} 
+          required
         />
       </label>
       {data.proof && <p className="text-xs text-gold mt-1">Uploaded: {data.proof}</p>}
       {uploadError && <p className="text-xs text-destructive mt-1">{uploadError}</p>}
+      {!data.proofUrl && <p className="text-xs text-destructive mt-1">Proof of payment is required</p>}
     </div>
     <div>
       <label htmlFor="social" className={labelClass}>Social Media Link <span className="text-muted-foreground font-normal">(optional)</span></label>
@@ -362,6 +363,7 @@ const StepPrivacy = ({ data, update }: StepProps) => (
       ].map(({ mode, title, desc }) => (
         <button
           key={mode}
+          type="button"
           onClick={() => update("privacyMode", mode)}
           className={`text-left p-5 rounded-2xl border-2 transition-all ${data.privacyMode === mode ? "border-gold bg-gold/5 shadow-gold" : "border-border hover:border-gold/20"}`}
         >
@@ -370,6 +372,7 @@ const StepPrivacy = ({ data, update }: StepProps) => (
         </button>
       ))}
     </div>
+    {!data.privacyMode && <p className="text-xs text-destructive mt-1">Please select a privacy mode</p>}
       <div>
         <label htmlFor="alias" className={labelClass}>Alias <span className="text-destructive">*</span></label>
         <input id="alias" name="alias" className={inputClass} placeholder="e.g. StarDust42" value={data.alias || ""} onChange={(e) => update("alias", e.target.value)} required />
