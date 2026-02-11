@@ -39,25 +39,30 @@
 ### Step 3: Set Environment Variables
 Add these in Render Dashboard → Environment:
 
+**Required Now:**
 ```
 NODE_ENV=production
 PORT=10000
 DATABASE_URL=<paste-the-INTERNAL-database-url-here>
 # Example: postgres://calebel_user:password@dpg-xxxxx-a.singapore-postgres.render.com/calebel_db
 # ⚠️ USE INTERNAL URL, NOT EXTERNAL!
-CORS_ORIGINS=https://your-frontend-url.vercel.app
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=wvsucalebel@gmail.com
 SMTP_PASS=eimsgtsmxznrbfky
 SMTP_FROM=CALEBel <wvsucalebel@gmail.com>
+```
+
+**Can Set Later (after frontend is deployed):**
+```
+CORS_ORIGINS=https://your-frontend-url.vercel.app
 FRONTEND_URL=https://your-frontend-url.vercel.app
 ```
 
 **Important**: 
 - Use the **Internal Database URL** from Render PostgreSQL
-- Get Gmail App Password from: https://myaccount.google.com/apppasswords
-- Update `CORS_ORIGINS` and `FRONTEND_URL` after deploying frontend
+- You can set `CORS_ORIGINS` and `FRONTEND_URL` later after you deploy the frontend and get the Vercel URL
+- For now, you can use a placeholder or leave them empty, then update after frontend deployment
 
 ### Step 4: Run Database Migrations
 After backend is deployed, run migrations:
