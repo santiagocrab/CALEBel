@@ -41,7 +41,7 @@ export async function listChatMessages(matchId: string) {
     "SELECT id, sender_id, message, created_at FROM chat_messages WHERE match_id = $1 ORDER BY created_at ASC",
     [matchId]
   );
-  return result.rows.map((row) => ({
+  return result.rows.map((row: any) => ({
     id: row.id,
     senderId: row.sender_id,
     message: row.message,
