@@ -100,14 +100,17 @@ Click "Deploy" and wait for build to complete.
 
 ## 🔄 Update Backend CORS After Frontend Deployment
 
-After frontend is deployed, update backend environment variables:
+**IMPORTANT**: After frontend is deployed on Vercel, you MUST update backend environment variables:
 
 1. Go to Render Dashboard → Your Backend Service → Environment
-2. Update:
+2. Update these two variables with your actual Vercel frontend URL:
    - `CORS_ORIGINS`: Your Vercel frontend URL (e.g., `https://calebel.vercel.app`)
-   - `FRONTEND_URL`: Your Vercel frontend URL
+   - `FRONTEND_URL`: Your Vercel frontend URL (e.g., `https://calebel.vercel.app`)
 
-3. Redeploy the backend service
+3. **Save** the environment variables
+4. Render will automatically redeploy the backend service with the new CORS settings
+
+**Note**: Without updating CORS_ORIGINS, your frontend won't be able to communicate with the backend API!
 
 ---
 
