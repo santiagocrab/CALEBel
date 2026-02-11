@@ -207,3 +207,56 @@ export function generateMatchFoundEmail(compatibilityScore: number, reasons: str
 </html>
   `.trim();
 }
+
+export function generateChatNotificationEmail(senderAlias: string, websiteUrl: string): string {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>💌 New Message from Your Ka-Label! - CALEBel</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #FFE5E5 0%, #FFF0F5 50%, #FFE5E5 100%);">
+  <table role="presentation" style="width: 100%; border-collapse: collapse; background: linear-gradient(135deg, #FFE5E5 0%, #FFF0F5 50%, #FFE5E5 100%); padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" style="max-width: 600px; width: 100%; background: #FFFFFF; border-radius: 20px; box-shadow: 0 10px 40px rgba(238, 105, 131, 0.3); overflow: hidden; border: 3px solid #EE6983;">
+          <tr>
+            <td style="background: linear-gradient(135deg, #850E35 0%, #EE6983 100%); padding: 40px 30px; text-align: center;">
+              <div style="font-size: 60px; line-height: 1; margin-bottom: 10px;">💌✨💕</div>
+              <h1 style="margin: 0; color: #FFFFFF; font-size: 32px; font-weight: bold;">New Message!</h1>
+              <p style="margin: 10px 0 0 0; color: #FFC4C4; font-size: 16px;">Your Ka-Label sent you a message 💝</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 50px 40px; text-align: center;">
+              <div style="font-size: 64px; margin-bottom: 20px;">💬💕</div>
+              <h2 style="margin: 0 0 20px 0; color: #850E35; font-size: 28px; font-weight: bold;">You Have a New Message!</h2>
+              <p style="margin: 0 0 30px 0; color: #666; font-size: 16px; line-height: 1.6;">
+                <strong style="color: #850E35;">${senderAlias}</strong> has sent you a message in the CALEBration Chamber! 💕<br>
+                Don't keep them waiting!
+              </p>
+              <div style="margin: 40px 0;">
+                <a href="${websiteUrl}/chat" style="display: inline-block; background: linear-gradient(135deg, #850E35 0%, #EE6983 100%); color: #FFFFFF; text-decoration: none; padding: 18px 40px; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 5px 20px rgba(238, 105, 131, 0.4);">
+                  💌 Open Chat & Reply 💌
+                </a>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px 40px; background: #850E35; text-align: center;">
+              <p style="margin: 0 0 10px 0; color: #FFC4C4; font-size: 12px;">
+                Made with 💕 by CICT Student Council
+              </p>
+              <div style="margin-top: 15px; font-size: 20px;">🌹💕🌹</div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+}
