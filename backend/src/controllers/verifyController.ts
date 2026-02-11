@@ -192,7 +192,7 @@ export async function confirmVerification(req: Request, res: Response) {
   }
 
   // Verify that we updated the correct user
-  const updatedUserId = updateResult.rows[0].user_id;
+  const updatedUserId = (updateResult.rows[0] as any).user_id;
   if (updatedUserId !== userId) {
     console.error(`⚠️  SECURITY WARNING: Updated wrong user! Expected ${userId}, got ${updatedUserId}`);
     return res.status(500).json({ error: "Verification update failed." });
