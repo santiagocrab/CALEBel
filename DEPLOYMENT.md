@@ -32,7 +32,8 @@
    - **Name**: `calebel-backend`
    - **Root Directory**: `backend`
    - **Environment**: `Node`
-   - **Build Command**: `cd backend && npm install --include=dev && npm run build`
+   - **Build Command**: `cd backend && npm ci --include=dev && npm run build`
+   - **Note**: If `npm ci` fails, use `npm install --include=dev` instead
    - **Start Command**: `npm run start`
    - **Plan**: Free
 
