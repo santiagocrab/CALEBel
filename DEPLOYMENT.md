@@ -32,7 +32,7 @@
    - **Name**: `calebel-backend`
    - **Root Directory**: `backend`
    - **Environment**: `Node`
-   - **Build Command**: `npm install && npm run build`
+   - **Build Command**: `npm install --include=dev && npm run build`
    - **Start Command**: `npm run start`
    - **Plan**: Free
 

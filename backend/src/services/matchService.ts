@@ -8,6 +8,8 @@ type WaitingUser = {
     preferred: Record<string, string>;
     personality?: Record<string, string>;
     sogiesc?: Record<string, string>;
+    loveLanguageReceive?: string[];
+    loveLanguageProvide?: string[];
   };
 };
 

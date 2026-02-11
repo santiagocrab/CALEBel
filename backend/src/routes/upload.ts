@@ -13,7 +13,7 @@ if (!fs.existsSync(uploadDir)) {
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadDir),
-  filename: (_req, file, cb) => {
+  filename: (_req: any, file: any, cb: any) => {
     const ext = path.extname(file.originalname);
     const safeName = `${Date.now()}-${Math.round(Math.random() * 1e6)}${ext}`;
     cb(null, safeName);
@@ -23,7 +23,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
+  fileFilter: (_req: any, file: any, cb: any) => {
     const allowed = ["image/jpeg", "image/png", "image/webp"];
     if (!allowed.includes(file.mimetype)) {
       return cb(new Error("Only jpg/png/webp images are allowed."));
