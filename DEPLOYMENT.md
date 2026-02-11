@@ -16,7 +16,13 @@
 1. Go to [Render Dashboard](https://dashboard.render.com)
 2. Click "New +" → "PostgreSQL"
 3. Name it `calebel-db`
-4. Copy the **Internal Database URL** (you'll need this)
+4. **IMPORTANT**: Copy the **Internal Database URL** (NOT the External one)
+   - Internal URL looks like: `postgres://user:pass@dpg-xxxxx-a/calebel_db`
+   - Use Internal URL because:
+     - ✅ Faster (same network)
+     - ✅ Free (no egress charges)
+     - ✅ More secure
+     - ✅ Works even if database is not publicly accessible
 
 ### Step 2: Deploy Backend Service
 1. Go to Render Dashboard
@@ -36,7 +42,9 @@ Add these in Render Dashboard → Environment:
 ```
 NODE_ENV=production
 PORT=10000
-DATABASE_URL=<your-postgres-internal-url-from-step-1>
+DATABASE_URL=<paste-the-INTERNAL-database-url-here>
+# Example: postgres://calebel_user:password@dpg-xxxxx-a.singapore-postgres.render.com/calebel_db
+# ⚠️ USE INTERNAL URL, NOT EXTERNAL!
 CORS_ORIGINS=https://your-frontend-url.vercel.app
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
