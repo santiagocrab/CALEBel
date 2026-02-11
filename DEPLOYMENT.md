@@ -64,11 +64,10 @@ FRONTEND_URL=https://your-frontend-url.vercel.app
 - You can set `CORS_ORIGINS` and `FRONTEND_URL` later after you deploy the frontend and get the Vercel URL
 - For now, you can use a placeholder or leave them empty, then update after frontend deployment
 
-### Step 4: Run Database Migrations
-After backend is deployed, run migrations:
-1. Go to Render Dashboard → Your Backend Service
-2. Click "Shell" tab
-3. Run: `npm run db:migrate`
+### Step 4: Database Migrations (Automatic!)
+✅ **Migrations run automatically on server startup!** No Shell access needed.
+
+The backend will automatically run database migrations when it starts in production mode. You'll see migration logs in the Render service logs.
 
 ---
 
@@ -137,9 +136,10 @@ Click "Deploy" and wait for build to complete.
 - Ensure backend CORS allows your frontend URL
 
 ### Database Issues
-- Run migrations: `npm run db:migrate` in Render Shell
+- Check migration logs in Render service logs (migrations run automatically on startup)
 - Check PostgreSQL connection in Render dashboard
 - Verify `DATABASE_URL` is correct
+- If migrations fail, check that the database is accessible and `DATABASE_URL` is correct
 
 ---
 
