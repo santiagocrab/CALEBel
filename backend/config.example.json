@@ -1,0 +1,10 @@
+{
+  "PORT": 4000,
+  "DATABASE_URL": "postgres://calebel:calebel@localhost:5432/calebel",
+  "CORS_ORIGINS": "http://localhost:3000",
+  "SMTP_HOST": "smtp.example.com",
+  "SMTP_PORT": 587,
+  "SMTP_USER": "smtp-user",
+  "SMTP_PASS": "smtp-pass",
+  "SMTP_FROM": "CALEBel <no-reply@calebel.local>"
+}

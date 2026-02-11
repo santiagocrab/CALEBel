@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: calebel-postgres
+    environment:
+      POSTGRES_USER: calebel
+      POSTGRES_PASSWORD: calebel
+      POSTGRES_DB: calebel
+    ports:
+      - "5432:5432"
+    volumes:
+      - calebel_pgdata:/var/lib/postgresql/data
+
+volumes:
+  calebel_pgdata:
