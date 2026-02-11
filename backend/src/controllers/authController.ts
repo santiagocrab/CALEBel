@@ -121,7 +121,7 @@ export async function verifySignIn(req: Request, res: Response) {
   }
 
   // Parse expiration date properly - be very lenient with timezone issues
-  const expiresAtValue = record.expires_at;
+  const expiresAtValue: any = record.expires_at;
   let expiresAtMs: number;
   
   try {
