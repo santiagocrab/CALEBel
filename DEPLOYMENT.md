@@ -41,7 +41,7 @@ CORS_ORIGINS=https://your-frontend-url.vercel.app
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=wvsucalebel@gmail.com
-SMTP_PASS=<your-gmail-app-password>
+SMTP_PASS=eimsgtsmxznrbfky
 SMTP_FROM=CALEBel <wvsucalebel@gmail.com>
 FRONTEND_URL=https://your-frontend-url.vercel.app
 ```
