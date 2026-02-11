@@ -71,8 +71,14 @@ app.use("/api/test", testRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/rematch", rematchRoutes);
 
-app.listen(port, "0.0.0.0", () => {
-  // eslint-disable-next-line no-console
-  console.log(`CALEBel API listening on http://0.0.0.0:${port}`);
-  console.log(`CALEBel API accessible at http://localhost:${port}`);
-});
+// Server startup is handled in server.ts for production builds
+if (require.main === module) {
+  const port = process.env.PORT ? Number(process.env.PORT) : 4000;
+  app.listen(port, "0.0.0.0", () => {
+    // eslint-disable-next-line no-console
+    console.log(`CALEBel API listening on http://0.0.0.0:${port}`);
+    console.log(`CALEBel API accessible at http://localhost:${port}`);
+  });
+}
+
+export default app;

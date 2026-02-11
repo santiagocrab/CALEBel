@@ -1,346 +1,135 @@
-# CALEBel: The Search for your Ka-Label
+# CALEBel - Find Your Ka-Label 💕
 
-This document delivers the requested system blueprint for CALEBel: a controlled, university-run matchmaking + chat experience for the Taga-West community.
+A modern matching platform for WVSU students to find their perfect match through compatibility algorithms.
 
-## 1. System architecture diagram (conceptual)
+## 🚀 Features
 
-```
-Users (Web)
-  |
-  | HTTPS (REST + polling)
-  v
-Next.js App Router (Vercel)
-  |
-  | JSON REST
-  v
-Backend API (Node.js or Spring Boot) on Render
-  |
-  | SQL
-  v
-PostgreSQL (Render or managed)
-```
+- **User Registration**: Complete blueprint registration with email verification
+- **Smart Matching**: AI-powered compatibility matching based on personality, interests, and preferences
+- **Chat System**: Real-time chat with message limits and profanity filtering
+- **Admin Panel**: Manage users, verify payments, and manually create matches
+- **Rematch Functionality**: Request a new match for ₱20.00 if not satisfied
+- **Email Notifications**: Automated emails for verification, matches, and chat notifications
 
-## 2. Algorithm pseudocode
+## 📁 Project Structure
 
 ```
-INPUT: registered users with profiles, status = "waiting"
-OUTPUT: matches with >= 3 shared interests and preference alignment
-
-function buildInterestSet(user):
-  return set of selected vibe categories + specified sub-interests
-
-function compatibilityScore(u, v):
-  sharedInterests = intersection(buildInterestSet(u), buildInterestSet(v))
-  if size(sharedInterests) < 3: return 0
-
-  // Preference filters (must pass)
-  if not matchesPreferredCollege(u, v): return 0
-  if not matchesPreferredCourse(u, v): return 0
-  if not matchesPreferredYear(u, v): return 0
-  if not matchesPreferredIdentity(u, v): return 0
-
-  // Weighted scoring (simple, avoid overengineering)
-  score = 0
-  score += 40 * normalize(size(sharedInterests), 3, 8)
-  score += 20 if u.social_battery == v.social_battery else 5
-  score += 20 if u.mbti == v.mbti else 5
-  score += 10 if u.sun_sign == v.sun_sign else 3
-  score += 10 if u.gender_expression == v.gender_expression else 3
-  return score
-
-function matchUsers(waitingUsers):
-  matches = []
-  used = set()
-
-  for each user u in waitingUsers:
-    if u.id in used: continue
-    best = null
-    bestScore = 0
-    for each user v in waitingUsers where v.id != u.id and v.id not in used:
-      score = compatibilityScore(u, v)
-      if score > bestScore:
-        bestScore = score
-        best = v
-    if best != null and bestScore > 0:
-      matches.append((u, best, bestScore))
-      used.add(u.id)
-      used.add(best.id)
-  return matches
+CALEBel/
+├── frontend/          # React + Vite frontend
+├── backend/           # Node.js + Express backend
+└── external-frontend/ # External reference frontend
 ```
 
-## 3. Database schema (normalized)
+## 🛠️ Tech Stack
 
-```
-USERS
-- id (PK, UUID)
-- alias (text, nullable)
-- role (text, default 'student')
-- schedule (text, nullable)          -- optional profile field
-- energy (text, nullable)            -- optional profile field
-- collaboration (text, nullable)     -- optional profile field
-- intent (text, nullable)            -- optional profile field
-- status (text, enum: waiting|matched)
-- created_at (timestamp)
+### Frontend
+- React 18
+- Vite
+- TypeScript
+- Tailwind CSS
+- Framer Motion
+- React Router DOM
 
-MATCHES
-- id (PK, UUID)
-- user1_id (FK -> USERS.id)
-- user2_id (FK -> USERS.id)
-- compatibility_score (int)
-- created_at (timestamp)
+### Backend
+- Node.js
+- Express.js
+- TypeScript
+- PostgreSQL
+- Nodemailer (Gmail SMTP)
 
-CHAT_MESSAGES
-- id (PK, UUID)
-- match_id (FK -> MATCHES.id)
-- sender_id (FK -> USERS.id)
-- message (text)
-- char_count (int)
-- created_at (timestamp)
+## 🚀 Deployment
 
-CHAT_LIMITS
-- user_id (FK -> USERS.id)
-- match_id (FK -> MATCHES.id)
-- messages_sent (int, max 25)
+### Frontend (Vercel)
 
-Indexes:
-- USERS(status)
-- MATCHES(user1_id), MATCHES(user2_id)
-- CHAT_MESSAGES(match_id, created_at)
-- CHAT_LIMITS(user_id, match_id)
-```
+1. Connect your GitHub repository to Vercel
+2. Set root directory to `frontend`
+3. Build command: `npm run build`
+4. Output directory: `dist`
+5. Add environment variable:
+   - `VITE_API_BASE_URL`: Your backend API URL (e.g., `https://calebel-backend.onrender.com`)
 
-## 4. API contract definitions
+### Backend (Render)
 
-Base URL: `/api`
+1. Create a new Web Service on Render
+2. Connect your GitHub repository
+3. Set root directory to `backend`
+4. Build command: `npm install && npm run build`
+5. Start command: `npm run start`
+6. Add environment variables:
+   - `DATABASE_URL`: PostgreSQL connection string
+   - `CORS_ORIGINS`: Frontend URL (e.g., `https://calebel.vercel.app`)
+   - `PORT`: `10000` (Render default)
+   - `SMTP_HOST`: `smtp.gmail.com`
+   - `SMTP_PORT`: `587`
+   - `SMTP_USER`: Your Gmail address
+   - `SMTP_PASS`: Gmail app password
+   - `SMTP_FROM`: `CALEBel <your-email@gmail.com>`
+   - `FRONTEND_URL`: Your frontend URL
+   - `NODE_ENV`: `production`
 
-### POST /api/register
-Request (JSON)
-```
-{
-  "fullName": "First M. Last",
-  "dob": "2003-05-21",
-  "email": "name@wvsu.edu.ph",
-  "college": "CICT",
-  "course": "BSCS",
-  "yearLevel": "1st",
-  "gcashRef": "1234567890",
-  "paymentProofUrl": "https://...",
-  "socialLink": "https://facebook.com/...",
-  "participationMode": "full|anonymous",
-  "alias": "TheCaffeinatedTechy",
-  "sogiesc": {
-    "sexualOrientation": "Pansexual",
-    "genderIdentity": "Cisgender - Woman",
-    "genderExpression": "Feminine",
-    "sexCharacteristics": "Female",
-    "pronouns": "she/her"
-  },
-  "personality": {
-    "sunSign": "Sagittarius",
-    "mbti": "INFP",
-    "socialBattery": "Introvert"
-  },
-  "interests": [
-    "Hobbyist: Literature",
-    "Academic: Research",
-    "Music: Rock",
-    "Advocacy: Community Service"
-  ],
-  "preferred": {
-    "college": "CICT",
-    "course": "BSCS",
-    "yearLevel": "Any",
-    "identity": "Woman"
-  },
-  "agreeTerms": true
-}
-```
-Response 201
-```
-{ "userId": "uuid", "status": "waiting" }
+## 📦 Installation
+
+### Frontend
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-### POST /api/match
-Triggers matching job (admin-only or scheduled).
-Response 200
-```
-{ "matchedCount": 12 }
-```
-
-### GET /api/match/:userId
-Response 200 (waiting)
-```
-{ "status": "waiting" }
-```
-Response 200 (matched)
-```
-{
-  "status": "matched",
-  "matchId": "uuid",
-  "compatibilityScore": 82,
-  "partner": {
-    "displayName": "Maria J. Dela Cruz",
-    "college": "CICT",
-    "course": "BSCS",
-    "yearLevel": "1st",
-    "sogiesc": { ... },
-    "personality": { ... },
-    "interests": [ ... ],
-    "socialLink": "https://..."
-  }
-}
+### Backend
+```bash
+cd backend
+npm install
+npm run dev
 ```
 
-### POST /api/chat/send
-Request
+## 🔐 Environment Variables
+
+### Frontend (.env)
 ```
-{ "matchId": "uuid", "senderId": "uuid", "message": "Hi there!" }
-```
-Backend validation:
-- user is part of the match
-- message length <= 150
-- user message count < 25
-- match exists and locked
-Response 201
-```
-{ "messageId": "uuid", "remaining": 24 }
+VITE_API_BASE_URL=http://localhost:4000
 ```
 
-### GET /api/chat/:matchId
-Response 200
+### Backend (.env)
 ```
-{
-  "matchId": "uuid",
-  "messages": [
-    { "id": "uuid", "senderId": "uuid", "message": "...", "createdAt": "..." }
-  ],
-  "limits": {
-    "user1Remaining": 12,
-    "user2Remaining": 8
-  }
-}
-```
-
-## 5. Frontend folder structure (Next.js App Router)
-
-```
-app/
-  layout.tsx
-  page.tsx                       -- Landing
-  register/
-    page.tsx                     -- Step-by-step registration
-  match/
-    page.tsx                     -- Match status
-  chat/
-    [matchId]/
-      page.tsx                   -- Chat UI
-  api/                           -- Next.js route handlers (optional proxy)
-components/
-  LandingHero.tsx
-  StepForm.tsx
-  MatchCard.tsx
-  ChatWindow.tsx
-  MessageCounter.tsx
-  SystemMessage.tsx
-lib/
-  api.ts                         -- REST client
-  validators.ts
-  constants.ts                   -- palette + limits
-styles/
-  globals.css
-public/
-  logo.svg
+DATABASE_URL=postgres://user:password@localhost:5432/calebel
+CORS_ORIGINS=http://localhost:3005
+PORT=4000
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+SMTP_FROM=CALEBel <your-email@gmail.com>
+FRONTEND_URL=http://localhost:3005
+NODE_ENV=development
 ```
 
-## 6. Backend folder structure
+## 📝 Database Setup
 
-Node.js (Express):
-```
-src/
-  app.ts
-  routes/
-    register.ts
-    match.ts
-    chat.ts
-  controllers/
-    registerController.ts
-    matchController.ts
-    chatController.ts
-  services/
-    matchService.ts
-    chatService.ts
-  middleware/
-    auth.ts
-    rateLimit.ts
-    validate.ts
-  db/
-    index.ts
-    migrations/
-    seeds/
-  utils/
-    logger.ts
-```
-
-Spring Boot:
-```
-src/main/java/edu/wvsu/calebel/
-  CalebelApplication.java
-  controller/
-  service/
-  repository/
-  model/
-  dto/
-  config/
-src/main/resources/
-  application.yml
-  db/migration/
-```
-
-## 7. Deployment notes (Vercel + Render)
-
-- Vercel: deploy Next.js app; set `NEXT_PUBLIC_API_BASE_URL`.
-- Render: deploy backend; set `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGINS`.
-- Postgres: Render managed DB or external; run migrations on deploy.
-- Enable HTTPS only; allow CORS from Vercel domain.
-- Polling for match status: 10–30s interval, stop when matched.
-
-## 8. Security and abuse-prevention considerations
-
-- Enforce `@wvsu.edu.ph` at backend; do not rely on frontend validation.
-- Verify payment proof server-side before enabling `status=waiting`.
-- Match locking: once matched, both users cannot be re-matched.
-- Message limits: 25 per user per match; reject overage.
-- Message length: 150 chars max; reject at API.
-- No edit/delete endpoints; messages are append-only.
-- Protect chat routes: sender must be part of match.
-- Rate-limit `/api/chat/send` per user to prevent bursts.
-- Store minimal PII; anonymize when `participationMode=anonymous`.
-
-## 9. Local development steps
-
-1) Start Postgres
-```
-docker compose up -d
-```
-
-2) Configure environment
-- Backend: set `PORT`, `DATABASE_URL`, `CORS_ORIGINS`
-- Frontend: set `NEXT_PUBLIC_API_BASE_URL`
-Reference examples in `backend/config.example.json` and `frontend/config.example.json`.
-
-3) Run migrations
-```
+1. Create PostgreSQL database
+2. Run migrations:
+```bash
 cd backend
 npm run db:migrate
 ```
 
-4) Start backend + frontend
-```
-cd backend
-npm run dev
-```
-```
-cd frontend
-npm run dev
-```
-```
+## 🎯 Key Features
+
+- **Registration**: ₱50.00 registration fee via GCash
+- **Rematch**: ₱20.00 rematch fee if not satisfied
+- **Email Verification**: OTP-based email verification
+- **Compatibility Matching**: Advanced algorithm matching users
+- **Admin Panel**: Full admin control over users and matches
+- **Real-time Chat**: Limited message chat system
+
+## 📧 Email Setup
+
+See `backend/GMAIL_SETUP.md` for detailed Gmail app password setup instructions.
+
+## 🤝 Contributing
+
+This project is for WVSU CICT Student Council.
+
+## 📄 License
+
+Private - CICT Student Council, WVSU
