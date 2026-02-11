@@ -22,6 +22,10 @@ out/
 .env.production.local
 *.env
 
+# PowerShell scripts with passwords (keep structure but remove passwords)
+**/START_BACKEND.ps1
+**/UPDATE_GMAIL_PASSWORD.ps1
+
 # IDE
 .vscode/
 .idea/
