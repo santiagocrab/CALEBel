@@ -12,7 +12,9 @@ import {
   TrendingUp,
   AlertCircle,
   Loader,
-  Shield
+  Shield,
+  RefreshCw,
+  Image as ImageIcon
 } from "lucide-react";
 import { PageBackground } from "@/components/PageBackground";
 
@@ -56,6 +58,17 @@ interface Stats {
   unverifiedPayments: number;
 }
 
+interface RematchRequest {
+  id: string;
+  userId: string;
+  alias: string;
+  email: string;
+  gcashRef: string;
+  paymentProofUrl: string;
+  status: string;
+  createdAt: string;
+}
+
 const Admin = () => {
   const apiBase = import.meta.env.VITE_API_BASE_URL || "";
   const resolveProofUrl = (proofUrl: string | null) => {
@@ -71,11 +84,12 @@ const Admin = () => {
 
   const [users, setUsers] = useState<User[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
+  const [rematchRequests, setRematchRequests] = useState<RematchRequest[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTab, setSelectedTab] = useState<"users" | "matches" | "stats">("users");
+  const [selectedTab, setSelectedTab] = useState<"users" | "matches" | "stats" | "rematch">("users");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [calculating, setCalculating] = useState(false);
   const [compatibilityResult, setCompatibilityResult] = useState<any>(null);
@@ -100,7 +114,7 @@ const Admin = () => {
         throw new Error("Cannot connect to backend server. Please make sure the backend is running.");
       }
 
-      const [usersRes, matchesRes, statsRes] = await Promise.all([
+      const [usersRes, matchesRes, statsRes, rematchRes] = await Promise.all([
         fetch("/api/admin/users", { 
           method: "GET",
           headers: { "Content-Type": "application/json" }
@@ -118,6 +132,13 @@ const Admin = () => {
           headers: { "Content-Type": "application/json" }
         }).catch((e) => {
           throw new Error(`Failed to fetch stats: ${e.message}`);
+        }),
+        fetch("/api/rematch/requests", { 
+          method: "GET",
+          headers: { "Content-Type": "application/json" }
+        }).catch((e) => {
+          console.warn("Failed to fetch rematch requests:", e);
+          return { ok: true, json: async () => ({ requests: [], total: 0 }) };
         })
       ]);
 
@@ -137,9 +158,11 @@ const Admin = () => {
       const usersData = await usersRes.json();
       const matchesData = await matchesRes.json();
       const statsData = await statsRes.json();
+      const rematchData = await rematchRes.json();
 
       setUsers(usersData.users || []);
       setMatches(matchesData.matches || []);
+      setRematchRequests(rematchData.requests || []);
       setStats(statsData);
       setError(""); // Clear any previous errors
     } catch (err: any) {
@@ -248,6 +271,31 @@ const Admin = () => {
       alert(`✅ Match created successfully! Compatibility: ${data.compatibilityScore}%`);
     } catch (err: any) {
       setError(err.message || "Failed to create match");
+    }
+  };
+
+  const verifyRematchPayment = async (requestId: string, verified: boolean) => {
+    try {
+      const response = await fetch("/api/rematch/verify-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requestId, verified })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to verify rematch payment");
+      }
+
+      const data = await response.json();
+      setError("");
+      await loadData(); // Refresh data
+      alert(verified 
+        ? `✅ Rematch payment verified! ${data.matched ? "Match found immediately!" : "User is now in matching queue."}`
+        : "❌ Rematch payment rejected."
+      );
+    } catch (err: any) {
+      setError(err.message || "Failed to verify rematch payment");
     }
   };
 
@@ -419,6 +467,17 @@ const Admin = () => {
             >
               <TrendingUp className="w-5 h-5 inline mr-2" />
               Statistics
+            </button>
+            <button
+              onClick={() => setSelectedTab("rematch")}
+              className={`px-6 py-3 font-semibold transition-all ${
+                selectedTab === "rematch"
+                  ? "text-rose-pink border-b-2 border-rose-pink"
+                  : "text-wine-rose/60 hover:text-wine-rose"
+              }`}
+            >
+              <RefreshCw className="w-5 h-5 inline mr-2" />
+              Rematch Requests ({rematchRequests.filter(r => r.status === "pending").length})
             </button>
           </div>
 
@@ -662,6 +721,107 @@ const Admin = () => {
                   </p>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Rematch Requests Tab */}
+          {selectedTab === "rematch" && (
+            <div className="space-y-4 max-h-[600px] overflow-y-auto">
+              {rematchRequests.length === 0 ? (
+                <div className="text-center py-12 text-wine-rose/70">
+                  <RefreshCw className="w-12 h-12 mx-auto mb-4 text-wine-rose/40" />
+                  <p className="font-semibold">No rematch requests yet</p>
+                  <p className="text-sm mt-2">Rematch requests will appear here when users submit them.</p>
+                </div>
+              ) : (
+                rematchRequests.map((request) => (
+                  <motion.div
+                    key={request.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white/80 rounded-xl p-6 border-2 border-rose-pink/20 hover:border-rose-pink/40 transition-all"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <h3 className="font-bold text-wine-rose text-lg">{request.alias}</h3>
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              request.status === "pending"
+                                ? "bg-yellow-100 text-yellow-700 border-2 border-yellow-300"
+                                : request.status === "verified"
+                                ? "bg-green-100 text-green-700 border-2 border-green-300"
+                                : "bg-red-100 text-red-700 border-2 border-red-300"
+                            }`}
+                          >
+                            {request.status.toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="space-y-2 mb-4">
+                          <p className="text-sm text-wine-rose/70">
+                            <span className="font-semibold">Email:</span> {request.email}
+                          </p>
+                          <p className="text-sm text-wine-rose/70">
+                            <span className="font-semibold">GCash Reference:</span>{" "}
+                            <span className="font-mono bg-wine-rose/10 px-2 py-1 rounded">{request.gcashRef}</span>
+                          </p>
+                          <p className="text-sm text-wine-rose/70">
+                            <span className="font-semibold">Requested:</span>{" "}
+                            {new Date(request.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                        {request.paymentProofUrl && (
+                          <div className="mt-4 p-4 bg-rose-pink/10 rounded-xl border-2 border-rose-pink/20">
+                            <div className="flex items-center gap-2 mb-2">
+                              <ImageIcon className="w-4 h-4 text-rose-pink" />
+                              <span className="text-sm font-semibold text-wine-rose">Payment Proof</span>
+                            </div>
+                            <a
+                              href={resolveProofUrl(request.paymentProofUrl) || undefined}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 text-sm text-rose-pink hover:text-wine-rose font-semibold hover:underline"
+                            >
+                              <Eye className="w-4 h-4" />
+                              View Payment Screenshot
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                      {request.status === "pending" && (
+                        <div className="flex flex-col gap-2 shrink-0">
+                          <button
+                            onClick={() => verifyRematchPayment(request.id, true)}
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition-all flex items-center justify-center gap-2 shadow-lg"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            Verify Payment
+                          </button>
+                          <button
+                            onClick={() => verifyRematchPayment(request.id, false)}
+                            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition-all flex items-center justify-center gap-2 shadow-lg"
+                          >
+                            <XCircle className="w-4 h-4" />
+                            Reject Payment
+                          </button>
+                        </div>
+                      )}
+                      {request.status === "verified" && (
+                        <div className="flex items-center gap-2 text-green-600 font-semibold">
+                          <CheckCircle className="w-5 h-5" />
+                          <span>Verified</span>
+                        </div>
+                      )}
+                      {request.status === "rejected" && (
+                        <div className="flex items-center gap-2 text-red-600 font-semibold">
+                          <XCircle className="w-5 h-5" />
+                          <span>Rejected</span>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                ))
+              )}
             </div>
           )}
         </div>

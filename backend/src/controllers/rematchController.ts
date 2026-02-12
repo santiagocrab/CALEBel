@@ -241,6 +241,58 @@ export async function getRematchStatus(req: Request, res: Response) {
 }
 
 /**
+ * Get all rematch requests (Admin only)
+ * GET /api/rematch/requests
+ */
+export async function getAllRematchRequests(req: Request, res: Response) {
+  try {
+    const result = await query<{
+      id: string;
+      user_id: string;
+      gcash_ref: string;
+      payment_proof_url: string;
+      status: string;
+      created_at: string;
+      alias: string;
+      email: string;
+    }>(
+      `SELECT 
+        rr.id,
+        rr.user_id,
+        rr.gcash_ref,
+        rr.payment_proof_url,
+        rr.status,
+        rr.created_at,
+        u.alias,
+        COALESCE(up.profile->>'email', u.email) as email
+      FROM rematch_requests rr
+      JOIN users u ON rr.user_id = u.id
+      LEFT JOIN user_profiles up ON u.id = up.user_id
+      ORDER BY rr.created_at DESC`
+    );
+
+    const requests = result.rows.map((row) => ({
+      id: row.id,
+      userId: row.user_id,
+      alias: row.alias || "Unknown",
+      email: row.email || "N/A",
+      gcashRef: row.gcash_ref,
+      paymentProofUrl: row.payment_proof_url,
+      status: row.status,
+      createdAt: row.created_at
+    }));
+
+    return res.json({ requests, total: requests.length });
+  } catch (error: any) {
+    console.error("Error getting rematch requests:", error);
+    return res.status(500).json({
+      error: "Failed to get rematch requests",
+      details: error.message
+    });
+  }
+}
+
+/**
  * Update user blueprint (for rematch)
  * POST /api/rematch/update-blueprint
  * Body: { userId: string, blueprint: { alias, sogiesc, personality, loveLanguageReceive, loveLanguageProvide, interests, preferred } }
