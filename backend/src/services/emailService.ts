@@ -39,13 +39,20 @@ function buildTransport(host: string, port: number) {
 }
 
 function getTransportCandidates() {
-  const candidates: Array<{ host: string; port: number }> = [
-    { host: smtpHost, port: smtpPort },
-  ];
+  const candidates: Array<{ host: string; port: number }> = [];
+  const pushUnique = (host: string, port: number) => {
+    if (!candidates.some((c) => c.host === host && c.port === port)) {
+      candidates.push({ host, port });
+    }
+  };
 
-  // If Gmail is configured and primary is 587, try SSL 465 as fallback.
-  if (smtpHost.includes("gmail") && smtpPort !== 465) {
-    candidates.push({ host: smtpHost, port: 465 });
+  // Primary configured transport first
+  pushUnique(smtpHost, smtpPort);
+
+  // For Gmail, always try both common ports.
+  if (smtpHost.includes("gmail")) {
+    pushUnique(smtpHost, 587); // STARTTLS
+    pushUnique(smtpHost, 465); // SSL/TLS
   }
 
   return candidates;
