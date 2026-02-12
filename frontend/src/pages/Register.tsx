@@ -372,7 +372,7 @@ const StepIdentity = ({ data, update, onUpload, uploading, uploadError }: StepPr
       <div><label htmlFor="college" className={labelClass}>College <span className="text-destructive">*</span></label>
         <select id="college" name="college" className={selectClass} value={data.college || ""} onChange={(e) => update("college", e.target.value)} required>
           <option value="">Select college</option>
-          <option>CICT</option><option>CAS</option><option>COE</option><option>CON</option><option>COM</option><option>COC</option><option>COD</option><option>COL</option><option>PESCAR</option>
+          <option>CICT</option><option>CAS</option><option>COE</option><option>CON</option><option>COM</option><option>COC</option><option>COD</option><option>COL</option><option>CBM</option><option>PESCAR</option>
         </select>
       </div>
       <div><label htmlFor="course" className={labelClass}>Course <span className="text-destructive">*</span></label><input id="course" name="course" autoComplete="organization-title" className={inputClass} placeholder="BS Information Technology" value={data.course || ""} onChange={(e) => update("course", e.target.value)} required /></div>
@@ -589,7 +589,7 @@ const StepInterests = ({ data, update }: StepProps) => {
         <div>
           <label htmlFor="prefCollege" className={labelClass}>Preferred College</label>
           <select id="prefCollege" name="prefCollege" className={selectClass} value={data.prefCollege || ""} onChange={(e) => update("prefCollege", e.target.value)}>
-            <option value="">Any</option><option>CICT</option><option>CAS</option><option>COE</option><option>CON</option><option>COM</option><option>COC</option><option>COD</option><option>COL</option><option>PESCAR</option>
+            <option value="">Any</option><option>CICT</option><option>CAS</option><option>COE</option><option>CON</option><option>COM</option><option>COC</option><option>COD</option><option>COL</option><option>CBM</option><option>PESCAR</option>
           </select>
         </div>
         <div>
