@@ -755,7 +755,7 @@ const Admin = () => {
           </motion.div>
         )}
       </div>
-    </div>
+    </PageBackground>
   );
 };
 
