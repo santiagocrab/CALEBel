@@ -67,7 +67,7 @@ const PostChat = () => {
           iconBg: "bg-amber-100",
           iconColor: "text-amber-600",
           title: "🔄 RECALIBRATE",
-          desc: "Not feeling the connection? Pay ₱15 to find a new match and update your blueprint.",
+          desc: "Not feeling it? Pay PHP 15 to re-enter the matching pool and try again with a new Ka-Label.",
           price: "₱15.00",
           highlight: "Blueprint update included"
         },
