@@ -108,7 +108,14 @@ app.get("/", (_req, res) => {
 });
 
 app.get("/health", (_req, res) => {
-  res.json({ status: "ok" });
+  res.json({ 
+    status: "ok",
+    cors: {
+      configured: corsOrigins.length > 0,
+      origins: corsOrigins.length > 0 ? corsOrigins : ["* (allowing all)"],
+      allowAll: allowAllOrigins
+    }
+  });
 });
 
 app.use("/api/register", registerRoutes);
