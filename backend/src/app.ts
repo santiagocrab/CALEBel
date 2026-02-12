@@ -20,35 +20,63 @@ const app = express();
 const port = process.env.PORT ? Number(process.env.PORT) : 4000;
 
 // CORS configuration
-const corsOrigins = process.env.CORS_ORIGINS 
-  ? process.env.CORS_ORIGINS.split(",").map(origin => origin.trim())
-  : ["*"];
+const corsOriginsEnv = process.env.CORS_ORIGINS || "";
+const corsOrigins = corsOriginsEnv 
+  ? corsOriginsEnv.split(",").map(origin => origin.trim()).filter(origin => origin.length > 0)
+  : [];
 
-console.log("🌐 CORS Origins configured:", corsOrigins);
+// Debug logging
+console.log("🌐 CORS Configuration:");
+console.log("  - CORS_ORIGINS env var:", corsOriginsEnv || "(not set)");
+console.log("  - Parsed origins:", corsOrigins.length > 0 ? corsOrigins : ["* (allowing all)"]);
+
+// If no CORS_ORIGINS is set, allow all origins (for development/debugging)
+const allowAllOrigins = corsOrigins.length === 0;
 
 app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      
-      // If CORS_ORIGINS is set to "*", allow all origins
-      if (corsOrigins.includes("*")) {
+      if (!origin) {
+        console.log("✅ CORS: Allowing request with no origin");
         return callback(null, true);
       }
       
-      // Check if the origin is in the allowed list
+      // If no CORS_ORIGINS is set, allow all origins
+      if (allowAllOrigins) {
+        console.log(`✅ CORS: Allowing origin (no restrictions): ${origin}`);
+        return callback(null, true);
+      }
+      
+      // If CORS_ORIGINS is set to "*", allow all origins
+      if (corsOrigins.includes("*")) {
+        console.log(`✅ CORS: Allowing origin (wildcard): ${origin}`);
+        return callback(null, true);
+      }
+      
+      // Check if the origin is in the allowed list (exact match)
       if (corsOrigins.includes(origin)) {
+        console.log(`✅ CORS: Allowing origin (in list): ${origin}`);
+        return callback(null, true);
+      }
+      
+      // Also check without protocol (just in case)
+      const originWithoutProtocol = origin.replace(/^https?:\/\//, "");
+      const originsWithoutProtocol = corsOrigins.map(o => o.replace(/^https?:\/\//, ""));
+      if (originsWithoutProtocol.includes(originWithoutProtocol)) {
+        console.log(`✅ CORS: Allowing origin (without protocol match): ${origin}`);
         return callback(null, true);
       }
       
       // Reject the request
       console.warn(`⚠️  CORS blocked origin: ${origin}`);
+      console.warn(`   Allowed origins:`, corsOrigins);
       callback(new Error(`Not allowed by CORS: ${origin}`));
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    exposedHeaders: ["Content-Type", "Authorization"]
   })
 );
 app.use(express.json({ limit: "10mb" }));
