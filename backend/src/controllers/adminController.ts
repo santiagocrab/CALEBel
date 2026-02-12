@@ -26,32 +26,44 @@ export async function getAllUsers(req: Request, res: Response) {
       ORDER BY u.created_at DESC`
     );
 
-    const users = usersResult.rows.map((row) => ({
-      id: row.id,
-      alias: row.alias,
-      status: row.status,
-      createdAt: row.created_at,
-      email: row.profile?.email || "N/A",
-      fullName: row.profile?.fullName
-        ? `${row.profile.fullName.first} ${row.profile.fullName.middle || ""} ${row.profile.fullName.last}`.trim()
-        : "N/A",
-      college: row.profile?.college || "N/A",
-      course: row.profile?.course || "N/A",
-      yearLevel: row.profile?.yearLevel || "N/A",
-      paymentStatus: row.profile?.paymentStatus || "unverified",
-      verificationStatus: row.profile?.verificationStatus || "unverified",
-      gcashRef: row.profile?.gcashRef || "N/A",
-      gcashAccount: row.profile?.gcashAccount || row.profile?.gcashAccountNumber || row.profile?.gcashRef || "N/A",
-      paymentProofUrl: row.profile?.paymentProofUrl || null,
-      sogiesc: row.profile?.sogiesc || {},
-      personality: row.profile?.personality || {},
-      loveLanguages: {
-        receive: row.profile?.loveLanguageReceive || [],
-        provide: row.profile?.loveLanguageProvide || []
-      },
-      interests: row.profile?.interests || [],
-      preferred: row.profile?.preferred || {}
-    }));
+    const users = usersResult.rows.map((row) => {
+      const profile = row.profile || {};
+      const paymentProofUrl = profile.paymentProofUrl || profile.proofUrl || null;
+      
+      // Log if payment proof URL exists
+      if (paymentProofUrl) {
+        console.log(`📸 Payment proof found for user ${row.id}: ${paymentProofUrl.substring(0, 50)}...`);
+      } else {
+        console.log(`⚠️  No payment proof URL for user ${row.id} (alias: ${row.alias})`);
+      }
+      
+      return {
+        id: row.id,
+        alias: row.alias,
+        status: row.status,
+        createdAt: row.created_at,
+        email: profile.email || "N/A",
+        fullName: profile.fullName
+          ? `${profile.fullName.first} ${profile.fullName.middle || ""} ${profile.fullName.last}`.trim()
+          : "N/A",
+        college: profile.college || "N/A",
+        course: profile.course || "N/A",
+        yearLevel: profile.yearLevel || "N/A",
+        paymentStatus: profile.paymentStatus || "unverified",
+        verificationStatus: profile.verificationStatus || "unverified",
+        gcashRef: profile.gcashRef || "N/A",
+        gcashAccount: profile.gcashAccount || profile.gcashAccountNumber || profile.gcashRef || "N/A",
+        paymentProofUrl: paymentProofUrl,
+        sogiesc: profile.sogiesc || {},
+        personality: profile.personality || {},
+        loveLanguages: {
+          receive: profile.loveLanguageReceive || [],
+          provide: profile.loveLanguageProvide || []
+        },
+        interests: profile.interests || [],
+        preferred: profile.preferred || {}
+      };
+    });
 
     return res.json({ users, total: users.length });
   } catch (error: any) {

@@ -694,16 +694,26 @@ const Admin = () => {
                               {user.paymentStatus}
                             </span>
                           </div>
-                          {user.paymentProofUrl && (
-                            <a
-                              href={resolveProofUrl(user.paymentProofUrl) || undefined}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-rose-pink hover:underline flex items-center gap-1"
-                            >
-                              <Eye className="w-3 h-3" />
-                              View Proof
-                            </a>
+                          {user.paymentProofUrl ? (
+                            <div className="flex items-center gap-2">
+                              <a
+                                href={resolveProofUrl(user.paymentProofUrl) || user.paymentProofUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-rose-pink hover:underline flex items-center gap-1 font-semibold"
+                                onClick={(e) => {
+                                  const url = resolveProofUrl(user.paymentProofUrl) || user.paymentProofUrl;
+                                  console.log("Opening payment proof URL:", url);
+                                  console.log("Original URL:", user.paymentProofUrl);
+                                }}
+                              >
+                                <Eye className="w-3 h-3" />
+                                View Proof
+                              </a>
+                              <span className="text-xs text-wine-rose/50">({user.paymentProofUrl.substring(0, 30)}...)</span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-wine-rose/50 italic">No proof uploaded</span>
                           )}
                         </div>
                         {/* Compatibility Suggestions - Enhanced UI */}
