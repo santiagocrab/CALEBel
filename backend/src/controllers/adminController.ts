@@ -474,6 +474,12 @@ export async function createMatch(req: Request, res: Response) {
     const { generateMatchFoundEmail } = await import("../templates/emailTemplates");
     const { sendEmail } = await import("../services/emailService");
 
+    // Track email sending results
+    const emailResults: Array<{ userId: string; email: string; success: boolean; error?: string }> = [];
+
+    console.log("\n📧 Sending match notification emails to both users...");
+    console.log("=".repeat(60));
+
     for (const row of userEmails.rows) {
       const email = row.email;
       if (email) {
@@ -484,15 +490,35 @@ export async function createMatch(req: Request, res: Response) {
             "🎉 Congratulations! You've Been Matched by Admin! 💕",
             emailHtml
           );
-          console.log(`✅ Admin match notification email sent to: ${email}`);
+          console.log(`✅ Email sent successfully to: ${email} (User: ${row.id})`);
+          emailResults.push({ userId: row.id, email, success: true });
         } catch (err: any) {
-          console.error(`❌ Failed to send match email to ${email}:`, err?.message || err);
-          // Don't fail the match creation if email fails
+          const errorMsg = err?.message || String(err);
+          console.error(`❌ Failed to send email to ${email} (User: ${row.id}):`, errorMsg);
+          emailResults.push({ userId: row.id, email, success: false, error: errorMsg });
+          // Continue to try sending to the other user even if one fails
         }
       } else {
-        console.warn(`⚠️  No email found for user ${row.id}, skipping match notification email`);
+        console.warn(`⚠️  No email found for user ${row.id}, cannot send notification`);
+        emailResults.push({ userId: row.id, email: "N/A", success: false, error: "No email address found" });
       }
     }
+
+    // Summary of email sending
+    console.log("=".repeat(60));
+    const successCount = emailResults.filter(r => r.success).length;
+    const failCount = emailResults.filter(r => !r.success).length;
+    console.log(`📊 Email Summary: ${successCount} sent successfully, ${failCount} failed`);
+    
+    if (failCount > 0) {
+      console.log("\n⚠️  WARNING: Some users did not receive match notification emails!");
+      emailResults.forEach(result => {
+        if (!result.success) {
+          console.log(`   - User ${result.userId} (${result.email}): ${result.error}`);
+        }
+      });
+    }
+    console.log("=".repeat(60) + "\n");
 
     console.log("\n" + "=".repeat(60));
     console.log("💕 ADMIN MATCH CREATED");
@@ -501,14 +527,30 @@ export async function createMatch(req: Request, res: Response) {
     console.log(`   User 1: ${userId1}`);
     console.log(`   User 2: ${userId2}`);
     console.log(`   Compatibility: ${finalScore}%`);
+    console.log(`   Emails Sent: ${emailResults.filter(r => r.success).length}/2`);
     console.log("=".repeat(60) + "\n");
+
+    const emailsSent = emailResults.filter(r => r.success).length;
+    const allEmailsSent = emailsSent === 2;
 
     return res.json({
       success: true,
-      message: "Match created successfully!",
+      message: allEmailsSent 
+        ? "Match created successfully! Both users have been notified via email." 
+        : `Match created successfully! ${emailsSent} of 2 users were notified via email.`,
       matchId,
       compatibilityScore: finalScore,
-      reasons: finalReasons
+      reasons: finalReasons,
+      emailNotifications: {
+        sent: emailsSent,
+        total: 2,
+        results: emailResults.map(r => ({
+          userId: r.userId,
+          email: r.email,
+          success: r.success,
+          ...(r.error && { error: r.error })
+        }))
+      }
     });
   } catch (error: any) {
     console.error("Error creating match:", error);
