@@ -53,9 +53,60 @@ DATABASE_URL=<paste-the-INTERNAL-database-url-here>
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=wvsucalebel@gmail.com
-SMTP_PASS=eimsgtsmxznrbfky
+SMTP_PASS=<your-gmail-app-password>
 SMTP_FROM=CALEBel <wvsucalebel@gmail.com>
 ```
+
+**⚠️ Gmail API Setup (Required if SMTP is blocked):**
+
+If you see `ETIMEDOUT` errors when sending emails (Render blocks SMTP ports), set up Gmail API OAuth2:
+
+1. **Create Google Cloud Project:**
+   - Go to https://console.cloud.google.com/
+   - Create a new project or select existing
+   - Name it `CALEBel` (or any name)
+
+2. **Enable Gmail API:**
+   - Go to "APIs & Services" → "Library"
+   - Search for "Gmail API"
+   - Click "Enable"
+
+3. **Create OAuth2 Credentials:**
+   - Go to "APIs & Services" → "Credentials"
+   - Click "Create Credentials" → "OAuth client ID"
+   - If prompted, configure OAuth consent screen:
+     - User Type: External
+     - App name: CALEBel
+     - User support email: wvsucalebel@gmail.com
+     - Developer contact: wvsucalebel@gmail.com
+     - Click "Save and Continue" through all steps
+   - Application type: **Desktop app**
+   - Name: CALEBel Email Service
+   - Click "Create"
+   - **Copy the Client ID and Client Secret** (you'll need these)
+
+4. **Get Refresh Token:**
+   - In your local machine, clone the repo and run:
+     ```bash
+     cd backend
+     export GMAIL_CLIENT_ID="<paste-client-id-here>"
+     export GMAIL_CLIENT_SECRET="<paste-client-secret-here>"
+     node scripts/getGmailRefreshToken.js
+     ```
+   - Follow the prompts to authorize with `wvsucalebel@gmail.com`
+   - Copy the refresh token
+
+5. **Add to Render Environment Variables:**
+   ```
+   GMAIL_CLIENT_ID=<your-client-id>
+   GMAIL_CLIENT_SECRET=<your-client-secret>
+   GMAIL_REFRESH_TOKEN=<your-refresh-token>
+   ```
+
+**How it works:**
+- The backend will try SMTP first (faster)
+- If SMTP times out, it automatically falls back to Gmail API (HTTPS, works on Render)
+- Gmail API uses OAuth2 and works over port 443 (not blocked)
 
 **Can Set Later (after frontend is deployed):**
 ```

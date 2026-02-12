@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { google } from "googleapis";
 
 const smtpHost = (process.env.SMTP_HOST || "smtp.gmail.com").trim();
 const smtpPort = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587;
@@ -6,20 +7,23 @@ const smtpUser = process.env.SMTP_USER?.trim();
 // Google app passwords are often shown with spaces; strip them automatically.
 const smtpPass = process.env.SMTP_PASS?.replace(/\s+/g, "");
 const fromAddress = process.env.SMTP_FROM ?? (smtpUser ? `CALEBel <${smtpUser}>` : "CALEBel <no-reply@calebel.local>");
-const resendApiKey = process.env.RESEND_API_KEY?.trim();
-const resendFrom = process.env.RESEND_FROM?.trim() || fromAddress;
+
+// Gmail API OAuth2 credentials (optional, for when SMTP is blocked)
+const gmailClientId = process.env.GMAIL_CLIENT_ID?.trim();
+const gmailClientSecret = process.env.GMAIL_CLIENT_SECRET?.trim();
+const gmailRefreshToken = process.env.GMAIL_REFRESH_TOKEN?.trim();
 
 function canSend() {
-  return Boolean((smtpUser && smtpPass) || resendApiKey);
+  return Boolean(smtpUser && smtpPass) || Boolean(gmailClientId && gmailClientSecret && gmailRefreshToken);
 }
 
 function buildTransport(host: string, port: number) {
-  if (!canSend()) {
+  if (!smtpUser || !smtpPass) {
     return null;
   }
   
   // Debug: Log password length (not the actual password)
-  console.log("📧 Email Service Config:");
+  console.log("📧 Email Service Config (SMTP):");
   console.log("   Host:", smtpHost);
   console.log("   Port:", smtpPort);
   console.log("   User:", smtpUser);
@@ -34,9 +38,9 @@ function buildTransport(host: string, port: number) {
       user: smtpUser,
       pass: smtpPass
     },
-    connectionTimeout: 30000,
-    greetingTimeout: 30000,
-    socketTimeout: 30000
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000
   });
 }
 
@@ -60,58 +64,93 @@ function getTransportCandidates() {
   return candidates;
 }
 
-async function sendViaResend(to: string, subject: string, html: string) {
-  if (!resendApiKey) return null;
-
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${resendApiKey}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      from: resendFrom,
-      to: [to],
-      subject,
-      html
-    })
-  });
-
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const message = payload?.message || payload?.error || `Resend request failed (${response.status})`;
-    throw new Error(message);
+async function sendViaGmailAPI(to: string, subject: string, html: string) {
+  if (!gmailClientId || !gmailClientSecret || !gmailRefreshToken || !smtpUser) {
+    return null;
   }
 
-  console.log("✅ Email sent successfully via Resend API");
-  console.log("   To:", to);
-  console.log("   Subject:", subject);
-  return payload;
+  try {
+    // Set up OAuth2 client
+    const oauth2Client = new google.auth.OAuth2(
+      gmailClientId,
+      gmailClientSecret,
+      "urn:ietf:wg:oauth:2.0:oob" // Out-of-band redirect (for refresh token)
+    );
+
+    oauth2Client.setCredentials({
+      refresh_token: gmailRefreshToken
+    });
+
+    // Get access token
+    const { token } = await oauth2Client.getAccessToken();
+    if (!token) {
+      throw new Error("Failed to get access token from Gmail API");
+    }
+
+    // Create Gmail API client
+    const gmail = google.gmail({ version: "v1", auth: oauth2Client });
+
+    // Create email message in RFC 2822 format
+    const message = [
+      `From: ${fromAddress}`,
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      `Content-Type: text/html; charset=utf-8`,
+      ``,
+      html
+    ].join("\n");
+
+    // Encode message in base64url format
+    const encodedMessage = Buffer.from(message)
+      .toString("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+
+    // Send email via Gmail API
+    const response = await gmail.users.messages.send({
+      userId: "me",
+      requestBody: {
+        raw: encodedMessage
+      }
+    });
+
+    console.log("✅ Email sent successfully via Gmail API!");
+    console.log("   To:", to);
+    console.log("   Subject:", subject);
+    console.log("   Message ID:", response.data.id);
+    return response.data;
+  } catch (error: any) {
+    console.error("❌ Failed via Gmail API:", error?.message || error);
+    throw error;
+  }
 }
 
 export async function sendEmail(to: string, subject: string, html: string) {
   if (!canSend()) {
-    // eslint-disable-next-line no-console
-    console.error("❌ Email skipped (SMTP not configured):", subject, to);
-    console.error("   Missing SMTP configuration. Check environment variables:");
-    console.error("   SMTP_HOST:", smtpHost || "NOT SET");
+    console.error("❌ Email skipped (no email configuration):", subject, to);
+    console.error("   Missing email configuration. Check environment variables:");
     console.error("   SMTP_USER:", smtpUser || "NOT SET");
     console.error("   SMTP_PASS:", smtpPass ? "***" : "NOT SET");
+    console.error("   GMAIL_CLIENT_ID:", gmailClientId ? "SET" : "NOT SET");
+    console.error("   GMAIL_CLIENT_SECRET:", gmailClientSecret ? "SET" : "NOT SET");
+    console.error("   GMAIL_REFRESH_TOKEN:", gmailRefreshToken ? "SET" : "NOT SET");
     return;
   }
-  
-  // Prefer HTTPS API provider first (works when SMTP ports are blocked).
-  if (resendApiKey) {
+
+  // Try Gmail API first (works when SMTP ports are blocked)
+  if (gmailClientId && gmailClientSecret && gmailRefreshToken && smtpUser) {
     try {
-      return await sendViaResend(to, subject, html);
+      return await sendViaGmailAPI(to, subject, html);
     } catch (err: any) {
-      console.error("❌ Failed via Resend API:", err?.message || err);
-      // Fall through to SMTP if configured.
+      console.error("❌ Gmail API failed, falling back to SMTP:", err?.message || err);
+      // Fall through to SMTP
     }
   }
 
+  // Fall back to SMTP if Gmail API is not configured or failed
   if (!smtpUser || !smtpPass) {
-    throw new Error("No working email provider configured. Set RESEND_API_KEY or valid SMTP credentials.");
+    throw new Error("No working email provider configured. Set SMTP credentials or Gmail API OAuth2 credentials.");
   }
 
   const candidates = getTransportCandidates();
@@ -128,7 +167,7 @@ export async function sendEmail(to: string, subject: string, html: string) {
         subject,
         html
       });
-      console.log("✅ Email sent successfully!");
+      console.log("✅ Email sent successfully via SMTP!");
       console.log("   To:", to);
       console.log("   Subject:", subject);
       console.log("   Message ID:", info.messageId);
@@ -137,10 +176,21 @@ export async function sendEmail(to: string, subject: string, html: string) {
     } catch (error: any) {
       lastError = error;
       console.error(`❌ Failed via SMTP ${candidate.host}:${candidate.port}`, error?.code || error);
+      
+      // If SMTP times out, try Gmail API as fallback
+      if (error?.code === "ETIMEDOUT" && gmailClientId && gmailClientSecret && gmailRefreshToken) {
+        console.log("🔄 SMTP timed out, trying Gmail API...");
+        try {
+          return await sendViaGmailAPI(to, subject, html);
+        } catch (gmailError: any) {
+          console.error("❌ Gmail API also failed:", gmailError?.message || gmailError);
+          // Continue to next SMTP candidate
+        }
+      }
     }
   }
 
-  console.error("❌ Failed to send email:", lastError);
+  console.error("❌ Failed to send email via all methods:", lastError);
   console.error("   To:", to);
   console.error("   Subject:", subject);
   
@@ -155,7 +205,20 @@ export async function sendEmail(to: string, subject: string, html: string) {
     console.error("   3. Update SMTP_PASS in your environment variables");
     console.error("   4. Restart/redeploy the backend service");
     console.error("");
-    console.error("   See backend/GMAIL_SETUP.md for detailed instructions");
+  }
+
+  if (lastError?.code === "ETIMEDOUT") {
+    console.error("");
+    console.error("⚠️  SMTP CONNECTION TIMEOUT");
+    console.error("   Render is blocking SMTP ports (587, 465).");
+    console.error("   Solution: Set up Gmail API OAuth2 credentials:");
+    console.error("   1. Go to https://console.cloud.google.com/");
+    console.error("   2. Create a new project or select existing");
+    console.error("   3. Enable Gmail API");
+    console.error("   4. Create OAuth2 credentials (Desktop app)");
+    console.error("   5. Get refresh token (see DEPLOYMENT.md)");
+    console.error("   6. Set GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN");
+    console.error("");
   }
 
   throw lastError;
