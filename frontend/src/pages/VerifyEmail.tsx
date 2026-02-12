@@ -147,7 +147,7 @@ const VerifyEmail = () => {
           </div>
         </div>
       </motion.div>
-    </div>
+    </PageBackground>
   );
 };
 
