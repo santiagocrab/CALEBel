@@ -464,15 +464,9 @@ export async function createMatch(req: Request, res: Response) {
       [matchId, userId1, userId2]
     );
 
-    // Send match found emails to both users
-    const userProfiles = await query<{ profile: Record<string, any> }>(
-      "SELECT profile FROM user_profiles WHERE user_id IN ($1, $2)",
-      [userId1, userId2]
-    );
-
-    // Get user emails from users table
+    // Get user emails - try from profile first, then from users table
     const userEmails = await query<{ id: string; email: string }>(
-      "SELECT u.id, up.profile->>'email' as email FROM users u JOIN user_profiles up ON u.id = up.user_id WHERE u.id IN ($1, $2)",
+      "SELECT u.id, COALESCE(up.profile->>'email', u.email) as email FROM users u LEFT JOIN user_profiles up ON u.id = up.user_id WHERE u.id IN ($1, $2)",
       [userId1, userId2]
     );
 
@@ -491,10 +485,12 @@ export async function createMatch(req: Request, res: Response) {
             emailHtml
           );
           console.log(`✅ Admin match notification email sent to: ${email}`);
-        } catch (err) {
-          console.error(`❌ Failed to send match email to ${email}:`, err);
+        } catch (err: any) {
+          console.error(`❌ Failed to send match email to ${email}:`, err?.message || err);
           // Don't fail the match creation if email fails
         }
+      } else {
+        console.warn(`⚠️  No email found for user ${row.id}, skipping match notification email`);
       }
     }
 

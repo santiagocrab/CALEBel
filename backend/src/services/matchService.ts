@@ -119,8 +119,9 @@ export async function matchWaitingUsers() {
           "INSERT INTO chat_limits(user_id, match_id, messages_sent) VALUES ($1, $3, 0), ($2, $3, 0)",
           [u.id, best.id, matchId]
         );
-        const userEmails = await query<{ profile: Record<string, any> }>(
-          "SELECT profile FROM user_profiles WHERE user_id IN ($1, $2)",
+        // Get user emails - try from profile first, then from users table
+        const userEmails = await query<{ user_id: string; email: string }>(
+          "SELECT u.id as user_id, COALESCE(up.profile->>'email', u.email) as email FROM users u LEFT JOIN user_profiles up ON u.id = up.user_id WHERE u.id IN ($1, $2)",
           [u.id, best.id]
         );
         
@@ -129,18 +130,22 @@ export async function matchWaitingUsers() {
         const websiteUrl = process.env.FRONTEND_URL || "https://calebel.vercel.app";
         
         for (const row of userEmails.rows) {
-          const email = row.profile?.email;
+          const email = row.email;
           if (email) {
             try {
-              const emailHtml = generateMatchFoundEmail(bestScore, reasons, websiteUrl);
+              const emailHtml = generateMatchFoundEmail(bestScore, reasons, websiteUrl, false);
               await sendEmail(
                 email,
                 "🎉 Congratulations! We Found Your Ka-Label! 💕",
                 emailHtml
               );
-            } catch (err) {
-              console.error("Error sending match found email:", err);
+              console.log(`✅ Match found email sent to: ${email}`);
+            } catch (err: any) {
+              console.error(`❌ Failed to send match found email to ${email}:`, err?.message || err);
+              // Don't fail the match if email fails
             }
+          } else {
+            console.warn(`⚠️  No email found for user ${row.user_id}, skipping match notification email`);
           }
         }
         used.add(u.id);
