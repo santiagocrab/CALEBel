@@ -1,4 +1,8 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+// In production, always use same-origin /api and rely on Vercel rewrites.
+// This avoids browser-side CORS issues against Render.
+const API_BASE = import.meta.env.DEV
+  ? (import.meta.env.VITE_API_BASE_URL || "http://localhost:4000")
+  : "";
 
 async function handleFetch(url: string, options: RequestInit) {
   try {
