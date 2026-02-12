@@ -355,34 +355,74 @@ export async function matchWaitingUsers() {
           [u.id, best.id, matchId]
         );
         // Get user emails - try from profile first, then from users table
-        const userEmails = await query<{ user_id: string; email: string }>(
-          "SELECT u.id as user_id, COALESCE(up.profile->>'email', u.email) as email FROM users u LEFT JOIN user_profiles up ON u.id = up.user_id WHERE u.id IN ($1, $2)",
+        const userEmails = await query<{ user_id: string; email: string; alias: string }>(
+          `SELECT 
+            u.id as user_id, 
+            COALESCE(up.profile->>'email', u.email) as email,
+            u.alias
+          FROM users u 
+          LEFT JOIN user_profiles up ON u.id = up.user_id 
+          WHERE u.id IN ($1, $2)`,
           [u.id, best.id]
         );
         
-        // Send match found email with congratulations
+        // Send match found email with congratulations to BOTH users
         const { generateMatchFoundEmail } = await import("../templates/emailTemplates");
         const websiteUrl = process.env.FRONTEND_URL || "https://calebel.vercel.app";
         
+        console.log("\n" + "=".repeat(60));
+        console.log("📧 SENDING MATCH NOTIFICATION EMAILS");
+        console.log("=".repeat(60));
+        console.log(`Match ID: ${matchId}`);
+        console.log(`User 1: ${u.id}`);
+        console.log(`User 2: ${best.id}`);
+        console.log(`Compatibility Score: ${bestScore}%`);
+        console.log(`Found ${userEmails.rows.length} users to notify`);
+        console.log("=".repeat(60) + "\n");
+        
+        const emailResults: Array<{ userId: string; alias: string; email: string; success: boolean; error?: string }> = [];
+        
         for (const row of userEmails.rows) {
           const email = row.email;
+          const alias = row.alias || "User";
+          
           if (email) {
             try {
+              console.log(`📧 Sending match notification to: ${email} (${alias})`);
               const emailHtml = generateMatchFoundEmail(bestScore, reasons, websiteUrl, false);
               await sendEmail(
                 email,
                 "🎉 Congratulations! We Found Your Ka-Label! 💕",
                 emailHtml
               );
-              console.log(`✅ Match found email sent to: ${email}`);
+              console.log(`✅ Match found email sent successfully to: ${email} (${alias})`);
+              emailResults.push({ userId: row.user_id, alias, email, success: true });
             } catch (err: any) {
-              console.error(`❌ Failed to send match found email to ${email}:`, err?.message || err);
-              // Don't fail the match if email fails
+              const errorMsg = err?.message || String(err);
+              console.error(`❌ Failed to send match found email to ${email} (${alias}):`, errorMsg);
+              emailResults.push({ userId: row.user_id, alias, email, success: false, error: errorMsg });
+              // Don't fail the match if email fails, but log it
             }
           } else {
-            console.warn(`⚠️  No email found for user ${row.user_id}, skipping match notification email`);
+            console.warn(`⚠️  No email found for user ${row.user_id} (${row.alias || 'Unknown'}), skipping match notification email`);
+            emailResults.push({ userId: row.user_id, alias: row.alias || "Unknown", email: "N/A", success: false, error: "No email address found" });
           }
         }
+        
+        // Summary
+        const successCount = emailResults.filter(r => r.success).length;
+        const failCount = emailResults.filter(r => !r.success).length;
+        console.log("\n" + "=".repeat(60));
+        console.log(`📊 EMAIL SUMMARY: ${successCount} sent successfully, ${failCount} failed`);
+        if (failCount > 0) {
+          console.log("\n⚠️  WARNING: Some users did not receive match notification emails!");
+          emailResults.forEach(result => {
+            if (!result.success) {
+              console.log(`   - User ${result.user_id} (${result.alias}): ${result.email} - ${result.error}`);
+            }
+          });
+        }
+        console.log("=".repeat(60) + "\n");
         used.add(u.id);
         used.add(best.id);
         matchedCount += 1;
