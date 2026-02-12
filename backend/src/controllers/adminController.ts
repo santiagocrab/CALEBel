@@ -585,21 +585,30 @@ export async function getCompatibilitySuggestions(req: Request, res: Response) {
 
     const currentProfile = currentUserResult.rows[0].profile;
 
-    // Get all other users who are waiting and not already matched
-    // Include users with verified payment OR pending payment (to show all potential matches)
+    // First, let's check how many total users exist
+    const totalUsersCheck = await query<{ count: string }>(
+      "SELECT COUNT(*) as count FROM users WHERE id != $1",
+      [userId]
+    );
+    console.log(`📊 Total users in system (excluding current): ${totalUsersCheck.rows[0]?.count || 0}`);
+
+    // Get all other users who are not already in active matches
+    // Be very permissive - include all users except the current one and those in active matches
     const otherUsersResult = await query<{
       user_id: string;
       alias: string;
       profile: any;
+      status: string;
     }>(
       `SELECT 
         u.id as user_id,
         u.alias,
-        up.profile
+        up.profile,
+        u.status
       FROM users u
-      JOIN user_profiles up ON u.id = up.user_id
+      LEFT JOIN user_profiles up ON u.id = up.user_id
       WHERE u.id != $1 
-        AND u.status IN ('waiting', 'pending_verification')
+        AND up.profile IS NOT NULL
         AND NOT EXISTS (
           SELECT 1 FROM matches m 
           WHERE (m.user1_id = u.id OR m.user2_id = u.id) AND m.active = true
@@ -607,6 +616,15 @@ export async function getCompatibilitySuggestions(req: Request, res: Response) {
       ORDER BY u.created_at DESC`,
       [userId]
     );
+
+    console.log(`📊 Found ${otherUsersResult.rows.length} users after filtering (excluding current user and active matches)`);
+    
+    // Log status breakdown
+    const statusBreakdown: Record<string, number> = {};
+    otherUsersResult.rows.forEach(row => {
+      statusBreakdown[row.status] = (statusBreakdown[row.status] || 0) + 1;
+    });
+    console.log(`📊 Status breakdown:`, statusBreakdown);
 
     const suggestions = await Promise.all(
       otherUsersResult.rows.map(async (row) => {
@@ -769,8 +787,23 @@ export async function getCompatibilitySuggestions(req: Request, res: Response) {
     console.log(`📊 Compatibility suggestions for user ${userId}:`);
     console.log(`   - Found ${otherUsersResult.rows.length} potential matches`);
     console.log(`   - Generated ${validSuggestions.length} valid suggestions`);
+    
+    // If no suggestions, provide more detailed info
+    if (validSuggestions.length === 0) {
+      console.warn(`⚠️  No suggestions generated. Possible reasons:`);
+      console.warn(`   - No other users in system (total: ${totalUsersCheck.rows[0]?.count || 0})`);
+      console.warn(`   - All users are already matched`);
+      console.warn(`   - Users don't have profiles`);
+    }
 
-    return res.json({ suggestions: validSuggestions });
+    return res.json({ 
+      suggestions: validSuggestions,
+      debug: {
+        totalUsers: parseInt(totalUsersCheck.rows[0]?.count || "0"),
+        potentialMatches: otherUsersResult.rows.length,
+        validSuggestions: validSuggestions.length
+      }
+    });
   } catch (error: any) {
     console.error("Error getting compatibility suggestions:", error);
     return res.status(500).json({

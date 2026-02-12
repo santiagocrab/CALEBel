@@ -269,9 +269,24 @@ const Admin = () => {
       console.log("Compatibility suggestions loaded:", data);
       
       const suggestions = data.suggestions || [];
+      const debug = data.debug || {};
+      
       if (suggestions.length === 0) {
         console.warn(`No compatibility suggestions found for user ${userId}`);
-        setError(`No compatible users found. Try adjusting the search criteria or verify that there are other users in the system.`);
+        console.warn(`Debug info:`, debug);
+        
+        let errorMsg = "No compatible users found. ";
+        if (debug.totalUsers === 0) {
+          errorMsg += "There are no other users in the system yet.";
+        } else if (debug.potentialMatches === 0) {
+          errorMsg += `All ${debug.totalUsers} other users are already matched.`;
+        } else {
+          errorMsg += `Found ${debug.potentialMatches} potential matches but couldn't calculate compatibility scores.`;
+        }
+        
+        setError(errorMsg);
+      } else {
+        setError(""); // Clear error if we have suggestions
       }
       
       setCompatibilitySuggestions((prev) => ({ 
