@@ -432,7 +432,11 @@ const StepPrivacy = ({ data, update }: StepProps) => (
           key={mode}
           type="button"
           onClick={() => update("privacyMode", mode)}
-          className={`text-left p-5 rounded-2xl border-2 transition-all ${data.privacyMode === mode ? "border-gold bg-gold/5 shadow-gold" : "border-border hover:border-gold/20"}`}
+          className={`text-left p-5 rounded-2xl border-2 transition-all ${
+            data.privacyMode === mode 
+              ? "border-gold bg-gold/10 shadow-[0_0_20px_hsl(var(--gold)/0.5),0_0_40px_hsl(var(--gold)/0.3),0_0_60px_hsl(var(--gold)/0.1)] ring-2 ring-gold/50 ring-offset-2 ring-offset-card" 
+              : "border-border hover:border-gold/20"
+          }`}
         >
           <h3 className="font-display font-bold text-foreground mb-1">{title}</h3>
           <p className="text-xs text-muted-foreground">{desc}</p>
