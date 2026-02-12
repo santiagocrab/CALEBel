@@ -64,39 +64,31 @@ const Home = () => {
             custom={0} 
             className="font-display font-bold text-wine-rose leading-tight mb-6 sm:mb-8 md:mb-10 lg:mb-12 px-2 sm:px-4"
             style={{
-              fontSize: 'clamp(1.75rem, 6vw + 0.5rem, 5.5rem)',
+              fontSize: 'clamp(2rem, 6vw + 0.5rem, 5.5rem)',
               lineHeight: '1.15',
               textShadow: '0 2px 8px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1)'
             }}
           >
             <span className="block">Organic Encounter?</span>
             <motion.span 
-              className="block mt-2 sm:mt-3 md:mt-4 lg:mt-5"
+              className="block mt-2 sm:mt-3 md:mt-4 lg:mt-5 text-wine-rose"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8 }}
               style={{
-                fontSize: 'clamp(1.5rem, 5.5vw + 0.5rem, 5rem)',
-                lineHeight: '1.15'
+                fontSize: 'clamp(1.75rem, 5.5vw + 0.5rem, 4.5rem)',
+                lineHeight: '1.15',
+                textShadow: '0 2px 8px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1)'
               }}
             >
-              <span 
-                className="bg-gradient-to-r from-rose-pink via-wine-rose to-rose-pink bg-clip-text text-transparent" 
-                style={{ 
-                  WebkitTextStroke: '1.5px rgba(133, 14, 53, 0.4)',
-                  filter: 'drop-shadow(0 2px 4px rgba(133, 14, 53, 0.3))',
-                  textShadow: '0 2px 8px rgba(238, 105, 131, 0.4), 0 1px 3px rgba(133, 14, 53, 0.3)'
-                }}
-              >
-                More like Organized Encounter.
-              </span>
+              More like Organized Encounter.
             </motion.span>
           </motion.h1>
 
           <motion.p 
             variants={fadeUp} 
             custom={1} 
-            className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl text-wine-rose/90 max-w-3xl lg:max-w-4xl mx-auto mb-10 sm:mb-12 md:mb-16 lg:mb-20 font-body px-4 leading-relaxed"
+            className="text-base sm:text-lg md:text-xl lg:text-2xl text-wine-rose/90 max-w-3xl lg:max-w-4xl mx-auto mb-10 sm:mb-12 md:mb-16 lg:mb-20 font-body px-4 leading-relaxed"
           >
             Find your perfect match through our compatibility algorithm. Join CALEBel today!
           </motion.p>
