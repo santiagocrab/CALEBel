@@ -14,6 +14,7 @@ import {
   Loader,
   Shield
 } from "lucide-react";
+import { PageBackground } from "@/components/PageBackground";
 
 interface User {
   id: string;
