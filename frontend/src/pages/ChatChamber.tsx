@@ -217,7 +217,7 @@ const ChatChamber = () => {
           </motion.div>
           <p className="text-wine-rose font-semibold">Loading your match...</p>
         </div>
-      </div>
+      </PageBackground>
     );
   }
 
