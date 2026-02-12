@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { UserPlus, CheckCircle, AlertCircle, Loader, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
+import { PageBackground } from "@/components/PageBackground";
 
 const TestSetup = () => {
   const [loading, setLoading] = useState(false);
