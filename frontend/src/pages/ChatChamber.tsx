@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, AlertTriangle, MessageCircle, Star, Heart, X, Clock, CheckCheck, Bug, Copy, RefreshCw, Loader } from "lucide-react";
 import { Link } from "react-router-dom";
 import { fetchMatch, fetchChat, sendChatMessage } from "@/lib/api";
+import { PageBackground } from "@/components/PageBackground";
 
 const MAX_MESSAGES = 25;
 const MAX_CHARS = 150;
