@@ -519,12 +519,31 @@ export async function createMatch(req: Request, res: Response) {
           
           const compatible = compatibleOrientations[orientation1] || [];
           if (compatible.includes(orientation2)) {
-            if (orientation1 === orientation2) {
-              score += 25; // Perfect orientation match
-              scoreReasons.push(`💜 Perfect orientation match (${orientation1})`);
+            // SPECIAL RULE: If both are heterosexual AND have the same gender identity, no match
+            if (orientation1 === "Heterosexual" && orientation2 === "Heterosexual") {
+              const genderIdentity1 = sogiesc1.genderIdentity || "";
+              const genderIdentity2 = sogiesc2.genderIdentity || "";
+              
+              if (genderIdentity1 && genderIdentity2 && genderIdentity1 === genderIdentity2) {
+                score += 0; // Heterosexual people with same gender identity should not match
+                scoreReasons.push(`❌ Heterosexual users with same gender identity cannot match`);
+              } else {
+                if (orientation1 === orientation2) {
+                  score += 25; // Perfect orientation match
+                  scoreReasons.push(`💜 Perfect orientation match (${orientation1})`);
+                } else {
+                  score += 18; // Compatible orientations
+                  scoreReasons.push(`💜 Compatible orientations`);
+                }
+              }
             } else {
-              score += 18; // Compatible orientations
-              scoreReasons.push(`💜 Compatible orientations`);
+              if (orientation1 === orientation2) {
+                score += 25; // Perfect orientation match
+                scoreReasons.push(`💜 Perfect orientation match (${orientation1})`);
+              } else {
+                score += 18; // Compatible orientations
+                scoreReasons.push(`💜 Compatible orientations`);
+              }
             }
           } else {
             score += 0; // Incompatible
