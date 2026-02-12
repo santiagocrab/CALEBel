@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, CheckCircle, Upload, Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { confirmVerification, registerUser, requestVerification, uploadImage } from "@/lib/api";
+import { PageBackground } from "@/components/PageBackground";
 
 const SECTIONS = [
   "Identity",
