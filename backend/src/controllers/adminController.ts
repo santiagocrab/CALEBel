@@ -823,6 +823,16 @@ export async function getCompatibilitySuggestions(req: Request, res: Response) {
             return null; // Incompatible - skip this user
           }
           
+          // SPECIAL RULE: If both are heterosexual AND have the same gender identity, no match
+          if (orientation1 === "Heterosexual" && orientation2 === "Heterosexual") {
+            const genderIdentity1 = sogiesc1.genderIdentity || "";
+            const genderIdentity2 = sogiesc2.genderIdentity || "";
+            
+            if (genderIdentity1 && genderIdentity2 && genderIdentity1 === genderIdentity2) {
+              return null; // Heterosexual people with same gender identity should not match
+            }
+          }
+          
           if (orientation1 === orientation2) {
             totalScore += 25; // Perfect orientation match
             reasons.push(`💜 Perfect orientation match (${orientation1})`);
@@ -836,6 +846,7 @@ export async function getCompatibilitySuggestions(req: Request, res: Response) {
 
         // Note: Gender identity, gender expression, pronouns, and sex characteristics
         // are NOT used for matching - only sexual orientation compatibility matters
+        // EXCEPTION: Gender identity is checked for heterosexual same-gender exclusion rule
 
         // ===== PREFERRED PERSON MATCHING (25 points max) =====
         const pref1 = currentProfile.preferred || {};

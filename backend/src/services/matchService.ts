@@ -74,6 +74,16 @@ function compatibilityScore(u: WaitingUser, v: WaitingUser) {
       return 0; // Incompatible orientations - no match possible
     }
     
+    // SPECIAL RULE: If both are heterosexual AND have the same gender identity, no match
+    if (orientationU === "Heterosexual" && orientationV === "Heterosexual") {
+      const genderIdentityU = sogiescU.genderIdentity || "";
+      const genderIdentityV = sogiescV.genderIdentity || "";
+      
+      if (genderIdentityU && genderIdentityV && genderIdentityU === genderIdentityV) {
+        return 0; // Heterosexual people with same gender identity should not match
+      }
+    }
+    
     // Perfect match gets maximum points
     if (orientationU === orientationV) {
       totalScore += 25; // Perfect orientation match
@@ -88,6 +98,7 @@ function compatibilityScore(u: WaitingUser, v: WaitingUser) {
 
   // Note: Gender identity, gender expression, pronouns, and sex characteristics
   // are NOT used for matching - only sexual orientation compatibility matters
+  // EXCEPTION: Gender identity is checked for heterosexual same-gender exclusion rule
 
   // ===== PREFERRED PERSON MATCHING (30 points max) =====
   // Check if they match each other's preferences
