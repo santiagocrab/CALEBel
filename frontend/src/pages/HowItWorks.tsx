@@ -8,7 +8,7 @@ const steps = [
     icon: UserCheck,
     title: "Register & Verify",
     desc: "Sign up with your WVSU email (@wvsu.edu.ph) and submit GCash proof of payment. We verify you're a legit Taga-West student.",
-    detail: "Age 18+ required · PHP 50 registration fee",
+    detail: "Age 18+ required · PHP 30 registration fee",
   },
   {
     icon: ClipboardList,
@@ -37,7 +37,7 @@ const steps = [
   {
     icon: Unlock,
     title: "Reveal, Recalibrate, or End",
-    desc: "Both choose: Reveal identities, recalibrate for a new match (PHP 20), or end the connection. Mutual consent required for reveal.",
+    desc: "Both choose: Reveal identities, recalibrate for a new match (PHP 15), or end the connection. Mutual consent required for reveal.",
     detail: "Full Disclosure → direct reveal · Anonymous → SC booth meetup",
   },
 ];
