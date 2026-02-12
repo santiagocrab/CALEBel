@@ -6,9 +6,11 @@ const smtpUser = process.env.SMTP_USER?.trim();
 // Google app passwords are often shown with spaces; strip them automatically.
 const smtpPass = process.env.SMTP_PASS?.replace(/\s+/g, "");
 const fromAddress = process.env.SMTP_FROM ?? (smtpUser ? `CALEBel <${smtpUser}>` : "CALEBel <no-reply@calebel.local>");
+const resendApiKey = process.env.RESEND_API_KEY?.trim();
+const resendFrom = process.env.RESEND_FROM?.trim() || fromAddress;
 
 function canSend() {
-  return Boolean(smtpUser && smtpPass);
+  return Boolean((smtpUser && smtpPass) || resendApiKey);
 }
 
 function buildTransport(host: string, port: number) {
@@ -58,6 +60,35 @@ function getTransportCandidates() {
   return candidates;
 }
 
+async function sendViaResend(to: string, subject: string, html: string) {
+  if (!resendApiKey) return null;
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${resendApiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from: resendFrom,
+      to: [to],
+      subject,
+      html
+    })
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = payload?.message || payload?.error || `Resend request failed (${response.status})`;
+    throw new Error(message);
+  }
+
+  console.log("✅ Email sent successfully via Resend API");
+  console.log("   To:", to);
+  console.log("   Subject:", subject);
+  return payload;
+}
+
 export async function sendEmail(to: string, subject: string, html: string) {
   if (!canSend()) {
     // eslint-disable-next-line no-console
@@ -69,6 +100,20 @@ export async function sendEmail(to: string, subject: string, html: string) {
     return;
   }
   
+  // Prefer HTTPS API provider first (works when SMTP ports are blocked).
+  if (resendApiKey) {
+    try {
+      return await sendViaResend(to, subject, html);
+    } catch (err: any) {
+      console.error("❌ Failed via Resend API:", err?.message || err);
+      // Fall through to SMTP if configured.
+    }
+  }
+
+  if (!smtpUser || !smtpPass) {
+    throw new Error("No working email provider configured. Set RESEND_API_KEY or valid SMTP credentials.");
+  }
+
   const candidates = getTransportCandidates();
   let lastError: any = null;
 
