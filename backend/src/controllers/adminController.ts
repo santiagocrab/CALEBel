@@ -503,57 +503,21 @@ export async function createMatch(req: Request, res: Response) {
           const compatible = compatibleOrientations[orientation1] || [];
           if (compatible.includes(orientation2)) {
             if (orientation1 === orientation2) {
-              score += 15;
+              score += 25; // Perfect orientation match
               scoreReasons.push(`💜 Perfect orientation match (${orientation1})`);
             } else {
-              score += 10;
+              score += 18; // Compatible orientations
               scoreReasons.push(`💜 Compatible orientations`);
             }
           } else {
             score += 0; // Incompatible
           }
         } else {
-          score += 5;
+          score += 10;
         }
 
-        // Gender Identity (10 points)
-        const genderIdentity1 = sogiesc1.genderIdentity || "";
-        const genderIdentity2 = sogiesc2.genderIdentity || "";
-        if (genderIdentity1 && genderIdentity2) {
-          if (genderIdentity1 === genderIdentity2) {
-            score += 10;
-            scoreReasons.push(`🌈 Matching gender identity (${genderIdentity1})`);
-          } else {
-            score += 6;
-            scoreReasons.push(`🌈 Compatible gender identities`);
-          }
-        }
-
-        // Gender Expression (8 points)
-        const genderExpression1 = sogiesc1.genderExpression || "";
-        const genderExpression2 = sogiesc2.genderExpression || "";
-        if (genderExpression1 && genderExpression2) {
-          if (genderExpression1 === genderExpression2) {
-            score += 8;
-            scoreReasons.push(`✨ Matching gender expression`);
-          } else {
-            score += 5;
-          }
-        }
-
-        // Pronouns (4 points)
-        const pronouns1 = sogiesc1.pronouns || "";
-        const pronouns2 = sogiesc2.pronouns || "";
-        if (pronouns1 && pronouns2 && pronouns1 === pronouns2) {
-          score += 4;
-        }
-
-        // Sex Characteristics (3 points)
-        const sexChar1 = sogiesc1.sexCharacteristics || "";
-        const sexChar2 = sogiesc2.sexCharacteristics || "";
-        if (sexChar1 && sexChar2 && sexChar1 === sexChar2) {
-          score += 3;
-        }
+        // Note: Gender identity, gender expression, pronouns, and sex characteristics
+        // are NOT used for matching - only sexual orientation compatibility matters
 
         // ===== PREFERRED PERSON MATCHING (25 points max) =====
         const pref1 = profile1.preferred || {};
@@ -578,19 +542,19 @@ export async function createMatch(req: Request, res: Response) {
         if (pref2.course && pref2.course !== "Any" && pref2.course === profile1.course) {
           preferenceScore += 2;
         }
-        score += Math.min(preferenceScore, 25);
+        score += Math.min(preferenceScore, 30);
         if (preferenceScore >= 20) {
           scoreReasons.push(`🎯 Perfect preference alignment`);
         }
 
-        // ===== INTERESTS (20 points max) =====
+        // ===== INTERESTS (25 points max) =====
         const interests1 = new Set(profile1.interests || []);
         const interests2 = new Set(profile2.interests || []);
         const sharedInterests = [...interests2].filter((i) => interests1.has(i));
         const totalUniqueInterests = new Set([...interests1, ...interests2]).size;
         const interestRatio = sharedInterests.length / Math.max(totalUniqueInterests, 1);
         if (sharedInterests.length >= 3) {
-          score += Math.min(20 * (interestRatio * 1.2), 20);
+          score += Math.min(25 * (interestRatio * 1.2), 25);
           scoreReasons.push(`🌟 ${sharedInterests.length} shared interests`);
         } else if (sharedInterests.length > 0) {
           score += sharedInterests.length * 3;
@@ -611,7 +575,7 @@ export async function createMatch(req: Request, res: Response) {
         
         if (totalLoveLangMatches > 0) {
           const perfectReciprocal = receiveMatch > 0 && provideMatch > 0;
-          score += Math.min(totalLoveLangMatches * 3 + (perfectReciprocal ? 2 : 0), 10);
+          score += Math.min(totalLoveLangMatches * 4 + (perfectReciprocal ? 3 : 0), 15);
           if (perfectReciprocal) {
             scoreReasons.push(`💕 Perfect love language match`);
           } else {

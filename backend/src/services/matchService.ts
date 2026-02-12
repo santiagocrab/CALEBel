@@ -88,57 +88,6 @@ function compatibilityScore(u: WaitingUser, v: WaitingUser) {
 
   // Note: Gender identity, gender expression, pronouns, and sex characteristics
   // are NOT used for matching - only sexual orientation compatibility matters
-  const genderExpressionU = sogiescU.genderExpression || "";
-  const genderExpressionV = sogiescV.genderExpression || "";
-  
-  if (genderExpressionU && genderExpressionV) {
-    if (genderExpressionU === genderExpressionV) {
-      totalScore += 8; // Matching expression
-    } else {
-      // Complementary expressions can work well
-      const complementaryPairs = [
-        ["Masculine", "Feminine"],
-        ["Feminine", "Androgynous"],
-        ["Androgynous", "Fluid"],
-        ["Fluid", "Masculine"],
-        ["Fluid", "Feminine"]
-      ];
-      
-      const isComplementary = complementaryPairs.some(
-        ([a, b]) => 
-          (a === genderExpressionU && b === genderExpressionV) ||
-          (b === genderExpressionU && a === genderExpressionV)
-      );
-      
-      totalScore += isComplementary ? 6 : 4; // Complementary or different
-    }
-  }
-
-  // 4. PRONOUNS COMPATIBILITY (4 points)
-  const pronounsU = sogiescU.pronouns || "";
-  const pronounsV = sogiescV.pronouns || "";
-  
-  if (pronounsU && pronounsV) {
-    if (pronounsU === pronounsV) {
-      totalScore += 4; // Same pronouns
-    } else if (pronounsU.includes("/") && pronounsV.includes("/")) {
-      // Check if there's overlap (e.g., "He/They" and "They/Them")
-      const uPronouns = pronounsU.split("/");
-      const vPronouns = pronounsV.split("/");
-      const hasOverlap = uPronouns.some(p => vPronouns.includes(p));
-      totalScore += hasOverlap ? 3 : 2;
-    } else {
-      totalScore += 2; // Different pronouns
-    }
-  }
-
-  // 5. SEX CHARACTERISTICS (3 points - less weight, more inclusive)
-  const sexCharU = sogiescU.sexCharacteristics || "";
-  const sexCharV = sogiescV.sexCharacteristics || "";
-  
-  if (sexCharU && sexCharV && sexCharU === sexCharV) {
-    totalScore += 3; // Same sex characteristics
-  }
 
   // ===== PREFERRED PERSON MATCHING (30 points max) =====
   // Check if they match each other's preferences
