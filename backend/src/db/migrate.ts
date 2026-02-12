@@ -3,11 +3,18 @@ import path from "path";
 import { query } from "./index";
 
 export async function runMigrations() {
-  const migrationsDir = path.join(__dirname, "migrations");
-  
-  // Check if migrations directory exists
-  if (!fs.existsSync(migrationsDir)) {
-    throw new Error(`Migrations directory not found: ${migrationsDir}`);
+  // In production we execute from dist/, but SQL files live in src/db/migrations.
+  // Try dist path first, then fall back to src path.
+  const candidateDirs = [
+    path.join(__dirname, "migrations"),
+    path.join(process.cwd(), "src", "db", "migrations"),
+  ];
+
+  const migrationsDir = candidateDirs.find((dir) => fs.existsSync(dir));
+  if (!migrationsDir) {
+    throw new Error(
+      `Migrations directory not found. Checked: ${candidateDirs.join(", ")}`
+    );
   }
   
   const files = fs
