@@ -73,12 +73,32 @@ const Admin = () => {
   const apiBase = import.meta.env.VITE_API_BASE_URL || "";
   const resolveProofUrl = (proofUrl: string | null) => {
     if (!proofUrl) return null;
+    
+    // If it's already a full URL
     if (proofUrl.startsWith("http://") || proofUrl.startsWith("https://")) {
+      // If it's a backend URL (onrender.com), convert to use /api proxy
+      if (proofUrl.includes("onrender.com") || proofUrl.includes("localhost:4000") || proofUrl.includes("localhost:1000")) {
+        // Extract the path from the URL (e.g., /uploads/filename.jpg)
+        const urlObj = new URL(proofUrl);
+        const path = urlObj.pathname;
+        // Use the /api proxy route
+        return `/api${path}`;
+      }
+      // If it's already a valid external URL, use it as-is
       return proofUrl;
     }
+    
+    // If it's a relative path starting with /uploads/
     if (proofUrl.startsWith("/uploads/")) {
-      return apiBase ? `${apiBase}${proofUrl}` : proofUrl;
+      // Use the /api proxy route
+      return `/api${proofUrl}`;
     }
+    
+    // If it's just a filename or path without leading slash
+    if (proofUrl.includes("uploads/") || proofUrl.match(/^[a-zA-Z0-9_-]+\.[a-zA-Z0-9]+$/)) {
+      return `/api/uploads/${proofUrl.replace(/^.*uploads\//, "")}`;
+    }
+    
     return proofUrl;
   };
 
