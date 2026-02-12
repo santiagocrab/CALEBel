@@ -8,6 +8,10 @@
     {
       "source": "/api/(.*)",
       "destination": "https://calebel.onrender.com/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
