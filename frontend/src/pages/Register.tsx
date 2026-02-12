@@ -575,7 +575,7 @@ const StepInterests = ({ data, update }: StepProps) => {
         <div>
           <label htmlFor="prefCollege" className={labelClass}>Preferred College</label>
           <select id="prefCollege" name="prefCollege" className={selectClass} value={data.prefCollege || ""} onChange={(e) => update("prefCollege", e.target.value)}>
-            <option value="">Any</option><option>CICT</option><option>CAS</option><option>COE</option><option>CON</option><option>COM</option><option>PESCAR</option>
+            <option value="">Any</option><option>CICT</option><option>CAS</option><option>COE</option><option>CON</option><option>COM</option><option>COC</option><option>COD</option><option>COL</option><option>PESCAR</option>
           </select>
         </div>
         <div>
