@@ -247,7 +247,7 @@ const Admin = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blush-pink via-rose-pink/20 to-ivory-cream flex items-center justify-center">
+      <PageBackground className="flex items-center justify-center">
         <div className="text-center">
           <Loader className="w-16 h-16 mx-auto mb-4 text-rose-pink animate-spin" />
           <p className="text-wine-rose font-semibold">Loading admin panel...</p>
@@ -257,7 +257,7 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blush-pink via-rose-pink/20 to-ivory-cream pt-20 pb-8">
+    <PageBackground className="pt-20 pb-8">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Header */}
         <motion.div

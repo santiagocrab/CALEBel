@@ -3,6 +3,7 @@ import { Heart, X, Sparkles, Star, MessageCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { fetchMatch } from "@/lib/api";
+import { PageBackground } from "@/components/PageBackground";
 
 interface MatchData {
   alias: string;
@@ -80,7 +81,7 @@ const MatchResult = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background pt-24 pb-16 flex items-center justify-center">
+      <PageBackground className="pt-24 pb-16 flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -91,13 +92,13 @@ const MatchResult = () => {
           </div>
           <p className="text-muted-foreground">Loading your match...</p>
         </motion.div>
-      </div>
+      </PageBackground>
     );
   }
 
   if (!hasMatch || !matchData) {
     return (
-      <div className="min-h-screen bg-background pt-24 pb-16">
+      <PageBackground className="pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-lg">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -203,7 +204,7 @@ const MatchResult = () => {
         </div>
       </motion.div>
     </div>
-  </div>
+  </PageBackground>
   );
 };
 

@@ -173,12 +173,12 @@ const Register = () => {
             ← Back to Home
           </Link>
         </motion.div>
-      </div>
+      </PageBackground>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-16">
+    <PageBackground className="pt-24 pb-16">
       <div className="container mx-auto px-4 max-w-2xl">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2 text-center">
@@ -333,7 +333,7 @@ const Register = () => {
           )}
         </motion.div>
       </div>
-    </div>
+    </PageBackground>
   );
 };
 

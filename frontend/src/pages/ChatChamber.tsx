@@ -205,7 +205,7 @@ const ChatChamber = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blush-pink via-rose-pink/20 to-ivory-cream flex items-center justify-center">
+      <PageBackground className="flex items-center justify-center">
         <div className="text-center">
           <motion.div
             animate={{ rotate: 360 }}
@@ -221,7 +221,7 @@ const ChatChamber = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blush-pink via-rose-pink/20 to-ivory-cream pt-16 sm:pt-20 pb-4 flex flex-col">
+    <PageBackground className="pt-16 sm:pt-20 pb-4 flex flex-col">
       <div className="container mx-auto px-4 max-w-2xl flex-1 flex flex-col">
         {/* Match Info Card - Collapsible */}
         <AnimatePresence>

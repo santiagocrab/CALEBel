@@ -3,6 +3,7 @@ import { Heart, MapPin, ExternalLink, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { fetchReveal } from "@/lib/api";
+import { PageBackground } from "@/components/PageBackground";
 
 const RevealResult = () => {
   const [loading, setLoading] = useState(true);
@@ -24,7 +25,7 @@ const RevealResult = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-16">
+    <PageBackground className="pt-24 pb-16">
       <div className="container mx-auto px-4 max-w-lg">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}

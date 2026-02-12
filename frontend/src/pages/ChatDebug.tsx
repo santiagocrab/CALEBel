@@ -61,7 +61,7 @@ const ChatDebug = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blush-pink via-rose-pink/20 to-ivory-cream flex items-center justify-center p-4 pt-24">
+    <PageBackground className="flex items-center justify-center p-4 pt-24">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

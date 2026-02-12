@@ -3,6 +3,7 @@ import { Eye, RefreshCw, XCircle, Heart } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { consentReveal } from "@/lib/api";
+import { PageBackground } from "@/components/PageBackground";
 
 const PostChat = () => {
   const [choice, setChoice] = useState<string | null>(null);
@@ -14,7 +15,7 @@ const PostChat = () => {
   const userId = localStorage.getItem("calebelUserId") || "";
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-16">
+    <PageBackground className="pt-24 pb-16">
       <div className="container mx-auto px-4 max-w-lg">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
           <Heart className="w-12 h-12 text-gold mx-auto mb-4" />
@@ -130,7 +131,7 @@ const PostChat = () => {
           </motion.div>
         )}
       </div>
-    </div>
+    </PageBackground>
   );
 };
 

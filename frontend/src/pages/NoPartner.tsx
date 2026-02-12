@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Heart, Mail, Home } from "lucide-react";
+import { PageBackground } from "@/components/PageBackground";
 
 const NoPartner = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blush-pink via-rose-pink/20 to-ivory-cream flex items-center justify-center px-4">
+    <PageBackground className="flex items-center justify-center px-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}

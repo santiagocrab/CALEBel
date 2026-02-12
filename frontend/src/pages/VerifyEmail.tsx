@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Mail, Lock, ArrowLeft, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { requestVerification, confirmVerification } from "@/lib/api";
+import { PageBackground } from "@/components/PageBackground";
 
 const VerifyEmail = () => {
   const [code, setCode] = useState("");
@@ -56,7 +57,7 @@ const VerifyEmail = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blush-pink via-rose-pink/20 to-ivory-cream flex items-center justify-center px-4">
+    <PageBackground className="flex items-center justify-center px-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}

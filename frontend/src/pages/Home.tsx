@@ -62,16 +62,32 @@ const Home = () => {
           <motion.h1 
             variants={fadeUp} 
             custom={0} 
-            className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl font-bold text-wine-rose leading-tight mb-6 sm:mb-8 md:mb-10 lg:mb-12 px-2"
+            className="font-display font-bold text-wine-rose leading-tight mb-6 sm:mb-8 md:mb-10 lg:mb-12 px-2 sm:px-4"
+            style={{
+              fontSize: 'clamp(1.75rem, 6vw + 0.5rem, 5.5rem)',
+              lineHeight: '1.15',
+              textShadow: '0 2px 8px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1)'
+            }}
           >
-            Organic Encounter?{" "}
+            <span className="block">Organic Encounter?</span>
             <motion.span 
-              className="block mt-3 sm:mt-4 md:mt-5 lg:mt-6"
+              className="block mt-2 sm:mt-3 md:mt-4 lg:mt-5"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8 }}
+              style={{
+                fontSize: 'clamp(1.5rem, 5.5vw + 0.5rem, 5rem)',
+                lineHeight: '1.15'
+              }}
             >
-              <span className="bg-gradient-to-r from-rose-pink via-wine-rose to-rose-pink bg-clip-text text-transparent">
+              <span 
+                className="bg-gradient-to-r from-rose-pink via-wine-rose to-rose-pink bg-clip-text text-transparent" 
+                style={{ 
+                  WebkitTextStroke: '1.5px rgba(133, 14, 53, 0.4)',
+                  filter: 'drop-shadow(0 2px 4px rgba(133, 14, 53, 0.3))',
+                  textShadow: '0 2px 8px rgba(238, 105, 131, 0.4), 0 1px 3px rgba(133, 14, 53, 0.3)'
+                }}
+              >
                 More like Organized Encounter.
               </span>
             </motion.span>

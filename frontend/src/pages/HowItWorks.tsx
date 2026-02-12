@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { UserCheck, ClipboardList, Cpu, Heart, MessageCircle, Unlock, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { PageBackground } from "@/components/PageBackground";
 
 const steps = [
   {
@@ -42,7 +43,7 @@ const steps = [
 ];
 
 const HowItWorks = () => (
-  <div className="min-h-screen bg-background pt-24 pb-16">
+  <PageBackground className="pt-24 pb-16">
     <div className="container mx-auto px-4 max-w-3xl">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-14">
         <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-3">
@@ -88,7 +89,7 @@ const HowItWorks = () => (
         </Link>
       </motion.div>
     </div>
-  </div>
+  </PageBackground>
 );
 
 export default HowItWorks;

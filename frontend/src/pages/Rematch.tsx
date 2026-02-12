@@ -76,7 +76,7 @@ const Rematch = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blush-pink via-rose-pink/20 to-ivory-cream pt-20 pb-8">
+    <PageBackground className="pt-20 pb-8">
       <div className="container mx-auto px-4 max-w-2xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

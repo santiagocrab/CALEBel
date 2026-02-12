@@ -4,6 +4,7 @@ import { ArrowLeft, Mail, Lock, Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { requestSignIn, verifySignIn, fetchMatch } from "@/lib/api";
 import LoadingScreen from "@/components/LoadingScreen";
+import { PageBackground } from "@/components/PageBackground";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -129,7 +130,7 @@ const SignIn = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blush-pink via-ivory-cream to-blush-pink flex items-center justify-center p-4">
+    <PageBackground className="flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -328,7 +329,7 @@ const SignIn = () => {
           </div>
         </div>
       </motion.div>
-    </div>
+    </PageBackground>
   );
 };
 
