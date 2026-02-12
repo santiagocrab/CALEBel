@@ -77,6 +77,21 @@ The backend will automatically run database migrations when it starts in product
 
 ## 🌐 Frontend Deployment (Vercel)
 
+### Step 1: Set Environment Variables in Vercel
+
+**CRITICAL**: Before deploying, set the backend API URL:
+
+1. Go to Vercel Dashboard → Your Project → **Settings** → **Environment Variables**
+2. Add this variable:
+   - **Key**: `VITE_API_BASE_URL`
+   - **Value**: `https://calebel.onrender.com` (your Render backend URL - check your actual backend URL)
+   - **Environment**: Select all (Production, Preview, Development)
+3. Click **Save**
+
+**Note**: If you don't set this, the frontend will try to connect to `http://localhost:4000` which won't work in production!
+
+### Step 2: Deploy to Vercel
+
 ### Step 1: Connect Repository
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
 2. Click "Add New" → "Project"
