@@ -53,7 +53,7 @@ const Home = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/10" />
       </motion.div>
 
-      <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 text-center relative z-10 w-full max-w-7xl">
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 text-center relative z-10 w-full max-w-7xl pt-20 md:pt-24 lg:pt-28">
         <motion.div 
           initial="hidden" 
           animate="visible" 
@@ -63,22 +63,32 @@ const Home = () => {
             variants={fadeUp} 
             custom={0} 
             className="font-display font-bold text-wine-rose leading-tight mb-6 sm:mb-8 md:mb-10 lg:mb-12 px-2 sm:px-4"
-            style={{
-              fontSize: 'clamp(2rem, 6vw + 0.5rem, 5.5rem)',
-              lineHeight: '1.15',
-              textShadow: '0 2px 8px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1)'
-            }}
           >
-            <span className="block">Organic Encounter?</span>
+            <span 
+              className="block"
+              style={{
+                fontSize: 'clamp(2.5rem, 4vw + 1rem, 4.5rem)',
+                lineHeight: '1.2',
+                textShadow: '2px 2px 4px rgba(0, 0, 0, 0.3), 0 0 20px rgba(133, 14, 53, 0.5), 0 0 40px rgba(238, 105, 131, 0.3)',
+                fontWeight: '700',
+                letterSpacing: '0.02em',
+                WebkitTextStroke: '1px rgba(133, 14, 53, 0.2)'
+              }}
+            >
+              Organic Encounter?
+            </span>
             <motion.span 
-              className="block mt-2 sm:mt-3 md:mt-4 lg:mt-5 text-wine-rose"
+              className="block mt-3 sm:mt-4 md:mt-5 lg:mt-6 text-wine-rose"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8 }}
               style={{
-                fontSize: 'clamp(1.75rem, 5.5vw + 0.5rem, 4.5rem)',
-                lineHeight: '1.15',
-                textShadow: '0 2px 8px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1)'
+                fontSize: 'clamp(2rem, 3.5vw + 1rem, 4rem)',
+                lineHeight: '1.2',
+                textShadow: '2px 2px 4px rgba(0, 0, 0, 0.3), 0 0 20px rgba(133, 14, 53, 0.5), 0 0 40px rgba(238, 105, 131, 0.3)',
+                fontWeight: '700',
+                letterSpacing: '0.02em',
+                WebkitTextStroke: '1px rgba(133, 14, 53, 0.2)'
               }}
             >
               More like Organized Encounter.
