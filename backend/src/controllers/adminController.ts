@@ -265,6 +265,23 @@ export async function calculateCompatibility(req: Request, res: Response) {
         });
       }
       
+      // SPECIAL RULE: If both are heterosexual AND have the same gender identity, no match
+      if (orientation1 === "Heterosexual" && orientation2 === "Heterosexual") {
+        const genderIdentity1 = sogiesc1.genderIdentity || "";
+        const genderIdentity2 = sogiesc2.genderIdentity || "";
+        
+        if (genderIdentity1 && genderIdentity2 && genderIdentity1 === genderIdentity2) {
+          return res.json({
+            userId1,
+            userId2,
+            compatibilityScore: 0,
+            reasons: ["❌ Heterosexual users with same gender identity cannot match"],
+            commonInterests: [],
+            loveLanguageMatches: { user1Receives: 0, user2Receives: 0 }
+          });
+        }
+      }
+      
       if (orientation1 === orientation2) {
         totalScore += 25; // Perfect orientation match
         reasons.push(`💜 Perfect orientation match (${orientation1})`);
