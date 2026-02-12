@@ -145,8 +145,8 @@ const Register = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-background pt-24 flex items-center justify-center px-4">
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full text-center">
+      <PageBackground className="pt-24 pb-16">
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full text-center px-4">
           <div className="w-20 h-20 mx-auto rounded-full bg-gold/10 flex items-center justify-center mb-6">
             <Heart className="w-10 h-10 text-gold animate-pulse-gold" />
           </div>
