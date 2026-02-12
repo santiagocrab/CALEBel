@@ -9,11 +9,20 @@ async function handleFetch(url: string, options: RequestInit) {
     }
     return response.json();
   } catch (err) {
-    if (err instanceof TypeError && (err.message.includes("fetch") || err.message.includes("Failed to fetch"))) {
-      throw new Error(`Cannot connect to backend server. Please make sure the backend is running on port 4000.`);
+    // Check for CORS errors specifically
+    if (err instanceof TypeError && err.message.includes("Failed to fetch")) {
+      // Check if it's a CORS error by looking at the URL
+      if (url.includes("onrender.com") || url.includes("calebel.onrender.com")) {
+        throw new Error(
+          `CORS Error: The backend is blocking requests from this origin. ` +
+          `Please ensure CORS_ORIGINS environment variable in Render includes: ${window.location.origin}. ` +
+          `Check DEPLOYMENT.md for instructions.`
+        );
+      }
+      throw new Error(`Cannot connect to backend server. Please make sure the backend is running.`);
     }
     if (err instanceof Error && (err.message.includes("NetworkError") || err.message.includes("ERR_"))) {
-      throw new Error(`Network error. Please check your connection and ensure the backend is running on port 4000.`);
+      throw new Error(`Network error. Please check your connection and ensure the backend is running.`);
     }
     throw err;
   }

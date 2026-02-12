@@ -103,28 +103,77 @@ Click "Deploy" and wait for build to complete.
 
 ## 🔄 Update Backend CORS After Frontend Deployment
 
-**IMPORTANT**: After frontend is deployed on Vercel, you MUST update backend environment variables:
+**🚨 CRITICAL**: After frontend is deployed on Vercel, you MUST update backend environment variables in Render, otherwise you'll get CORS errors!
 
-1. Go to Render Dashboard → Your Backend Service → **Environment** tab
-2. Add or update these two variables with your actual Vercel frontend URL:
-   - **`CORS_ORIGINS`**: `https://calebel.vercel.app` (or your actual Vercel URL)
-     - ⚠️ **IMPORTANT**: Use the exact URL including `https://` and no trailing slash
-     - If you have multiple origins, separate them with commas: `https://calebel.vercel.app,https://www.calebel.vercel.app`
-   - **`FRONTEND_URL`**: `https://calebel.vercel.app` (same as above)
+### Step-by-Step Fix:
 
-3. **Save Changes** button at the bottom
-4. Render will automatically redeploy the backend service with the new CORS settings
-5. Wait for the deployment to complete (check the "Events" tab)
-6. Test by visiting your frontend and checking the browser console
+1. **Go to Render Dashboard**
+   - Navigate to: https://dashboard.render.com
+   - Click on your backend service (the one running on Render)
 
-**Troubleshooting CORS Errors:**
-- ✅ Make sure `CORS_ORIGINS` is set to your exact Vercel URL (e.g., `https://calebel.vercel.app`)
-- ✅ No trailing slash in the URL
-- ✅ Include `https://` protocol
-- ✅ Check backend logs in Render to see if CORS is blocking requests
-- ✅ After updating, wait for the backend to fully redeploy before testing
+2. **Open Environment Tab**
+   - Click on the **"Environment"** tab in the left sidebar
 
-**Note**: Without updating CORS_ORIGINS, your frontend won't be able to communicate with the backend API!
+3. **Add/Update Environment Variables**
+   - Click **"Add Environment Variable"** or edit existing ones
+   - Add or update these **TWO** variables:
+
+   **Variable 1: `CORS_ORIGINS`**
+   - **Key**: `CORS_ORIGINS`
+   - **Value**: `https://calebel.vercel.app`
+   - ⚠️ **CRITICAL**: 
+     - Use the **exact URL** including `https://`
+     - **NO trailing slash** (don't use `https://calebel.vercel.app/`)
+     - If you have multiple origins, separate with commas: `https://calebel.vercel.app,https://www.calebel.vercel.app`
+
+   **Variable 2: `FRONTEND_URL`**
+   - **Key**: `FRONTEND_URL`
+   - **Value**: `https://calebel.vercel.app` (same as above)
+
+4. **Save and Redeploy**
+   - Click **"Save Changes"** button at the bottom
+   - Render will **automatically redeploy** your backend service
+   - Wait for deployment to complete (check the **"Events"** tab)
+   - Look for "Deploy succeeded" message
+
+5. **Verify It Works**
+   - Visit your frontend: https://calebel.vercel.app
+   - Try registering a new account
+   - Check browser console (F12) - should see no CORS errors
+   - Check backend logs in Render to see if requests are coming through
+
+### 🔧 Troubleshooting CORS Errors:
+
+**If you still see CORS errors after updating:**
+
+1. ✅ **Double-check the URL format**:
+   - ✅ Correct: `https://calebel.vercel.app`
+   - ❌ Wrong: `https://calebel.vercel.app/` (trailing slash)
+   - ❌ Wrong: `calebel.vercel.app` (missing https://)
+   - ❌ Wrong: `http://calebel.vercel.app` (wrong protocol)
+
+2. ✅ **Check backend logs in Render**:
+   - Go to Render Dashboard → Your Backend Service → **"Logs"** tab
+   - Look for: `🌐 CORS Origins configured: [ 'https://calebel.vercel.app' ]`
+   - If you see `⚠️ CORS blocked origin: ...`, the URL doesn't match
+
+3. ✅ **Wait for full redeploy**:
+   - After saving environment variables, wait 2-3 minutes for redeploy
+   - Check "Events" tab to confirm deployment completed
+
+4. ✅ **Clear browser cache**:
+   - Hard refresh: `Ctrl+Shift+R` (Windows) or `Cmd+Shift+R` (Mac)
+   - Or clear browser cache completely
+
+5. ✅ **Temporary workaround (for testing only)**:
+   - Set `CORS_ORIGINS` to `*` (allows all origins)
+   - ⚠️ **Only use this for testing!** Not recommended for production
+
+**Note**: Without updating `CORS_ORIGINS`, your frontend won't be able to communicate with the backend API and you'll see errors like:
+```
+Access to fetch at 'https://calebel.onrender.com/api/register' from origin 'https://calebel.vercel.app' 
+has been blocked by CORS policy
+```
 
 ---
 
