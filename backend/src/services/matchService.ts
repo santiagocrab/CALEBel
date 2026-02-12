@@ -48,10 +48,11 @@ function compatibilityScore(u: WaitingUser, v: WaitingUser) {
   const sogiescU = u.profile.sogiesc ?? {};
   const sogiescV = v.profile.sogiesc ?? {};
 
-  // ===== SECTION 3: SOGIE-SC COMPATIBILITY (PRIMARY - 40 points max) =====
+  // ===== SECTION 3: SOGIE-SC COMPATIBILITY (PRIMARY - 25 points max) =====
   // This is the MOST IMPORTANT factor for matching
+  // We only match based on compatible orientations, not gender identity
   
-  // 1. SEXUAL ORIENTATION COMPATIBILITY (15 points - CRITICAL)
+  // 1. SEXUAL ORIENTATION COMPATIBILITY (25 points - CRITICAL - ONLY FACTOR)
   const orientationU = sogiescU.orientation || sogiescU.sexualOrientation || "";
   const orientationV = sogiescV.orientation || sogiescV.sexualOrientation || "";
   
@@ -75,43 +76,18 @@ function compatibilityScore(u: WaitingUser, v: WaitingUser) {
     
     // Perfect match gets maximum points
     if (orientationU === orientationV) {
-      totalScore += 15;
+      totalScore += 25; // Perfect orientation match
     } else {
       // Compatible but different orientations
-      totalScore += 10;
+      totalScore += 18; // Compatible orientations
     }
   } else {
     // If orientation not specified, give base score but lower
-    totalScore += 5;
+    totalScore += 10;
   }
 
-  // 2. GENDER IDENTITY COMPATIBILITY (10 points)
-  const genderIdentityU = sogiescU.genderIdentity || "";
-  const genderIdentityV = sogiescV.genderIdentity || "";
-  
-  if (genderIdentityU && genderIdentityV) {
-    if (genderIdentityU === genderIdentityV) {
-      totalScore += 10; // Same gender identity
-    } else {
-      // Different but compatible identities
-      const compatibleIdentities: Record<string, string[]> = {
-        "Man": ["Man", "Non-binary", "Genderqueer"],
-        "Woman": ["Woman", "Non-binary", "Genderqueer"],
-        "Non-binary": ["Non-binary", "Man", "Woman", "Genderqueer", "Genderfluid"],
-        "Genderqueer": ["Genderqueer", "Non-binary", "Man", "Woman"],
-        "Genderfluid": ["Genderfluid", "Non-binary", "Genderqueer"]
-      };
-      
-      const uCompatible = compatibleIdentities[genderIdentityU] || [];
-      if (uCompatible.includes(genderIdentityV)) {
-        totalScore += 7; // Compatible identities
-      } else {
-        totalScore += 4; // Different but still valid
-      }
-    }
-  }
-
-  // 3. GENDER EXPRESSION COMPATIBILITY (8 points)
+  // Note: Gender identity, gender expression, pronouns, and sex characteristics
+  // are NOT used for matching - only sexual orientation compatibility matters
   const genderExpressionU = sogiescU.genderExpression || "";
   const genderExpressionV = sogiescV.genderExpression || "";
   
@@ -164,7 +140,7 @@ function compatibilityScore(u: WaitingUser, v: WaitingUser) {
     totalScore += 3; // Same sex characteristics
   }
 
-  // ===== PREFERRED PERSON MATCHING (25 points max) =====
+  // ===== PREFERRED PERSON MATCHING (30 points max) =====
   // Check if they match each other's preferences
   
   if (!preferencePasses(u, v) || !preferencePasses(v, u)) {
@@ -212,9 +188,9 @@ function compatibilityScore(u: WaitingUser, v: WaitingUser) {
     }
   }
   
-  totalScore += Math.min(preferenceScore, 25);
+  totalScore += Math.min(preferenceScore, 30);
 
-  // ===== INTERESTS MATCHING (20 points max) =====
+  // ===== INTERESTS MATCHING (25 points max) =====
   const uInterests = getInterests(u);
   const vInterests = getInterests(v);
   const sharedInterests = [...vInterests].filter((i) => uInterests.has(i));
@@ -225,11 +201,11 @@ function compatibilityScore(u: WaitingUser, v: WaitingUser) {
     totalScore += sharedInterests.length * 2;
   } else {
     const interestRatio = sharedInterests.length / Math.max(totalUniqueInterests, 1);
-    const interestScore = Math.min(20 * (interestRatio * 1.2), 20);
+    const interestScore = Math.min(25 * (interestRatio * 1.2), 25);
     totalScore += interestScore;
   }
 
-  // ===== LOVE LANGUAGES (10 points max) =====
+  // ===== LOVE LANGUAGES (15 points max) =====
   const loveLangUReceive = u.profile.loveLanguageReceive ?? [];
   const loveLangVProvide = v.profile.loveLanguageProvide ?? [];
   const loveLangUProvide = u.profile.loveLanguageProvide ?? [];
@@ -241,10 +217,10 @@ function compatibilityScore(u: WaitingUser, v: WaitingUser) {
   
   if (totalLoveLangMatches > 0) {
     const perfectReciprocal = receiveMatch > 0 && provideMatch > 0;
-    totalScore += Math.min(totalLoveLangMatches * 3 + (perfectReciprocal ? 2 : 0), 10);
+    totalScore += Math.min(totalLoveLangMatches * 4 + (perfectReciprocal ? 3 : 0), 15);
   }
 
-  // ===== PERSONALITY ALIGNMENT (5 points max - reduced weight) =====
+  // ===== PERSONALITY ALIGNMENT (5 points max) =====
   const personalityU = u.profile.personality ?? {};
   const personalityV = v.profile.personality ?? {};
   
