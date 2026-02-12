@@ -253,7 +253,7 @@ const Admin = () => {
           <Loader className="w-16 h-16 mx-auto mb-4 text-rose-pink animate-spin" />
           <p className="text-wine-rose font-semibold">Loading admin panel...</p>
         </div>
-      </div>
+      </PageBackground>
     );
   }
 
