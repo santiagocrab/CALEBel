@@ -105,13 +105,24 @@ Click "Deploy" and wait for build to complete.
 
 **IMPORTANT**: After frontend is deployed on Vercel, you MUST update backend environment variables:
 
-1. Go to Render Dashboard → Your Backend Service → Environment
-2. Update these two variables with your actual Vercel frontend URL:
-   - `CORS_ORIGINS`: Your Vercel frontend URL (e.g., `https://calebel.vercel.app`)
-   - `FRONTEND_URL`: Your Vercel frontend URL (e.g., `https://calebel.vercel.app`)
+1. Go to Render Dashboard → Your Backend Service → **Environment** tab
+2. Add or update these two variables with your actual Vercel frontend URL:
+   - **`CORS_ORIGINS`**: `https://calebel.vercel.app` (or your actual Vercel URL)
+     - ⚠️ **IMPORTANT**: Use the exact URL including `https://` and no trailing slash
+     - If you have multiple origins, separate them with commas: `https://calebel.vercel.app,https://www.calebel.vercel.app`
+   - **`FRONTEND_URL`**: `https://calebel.vercel.app` (same as above)
 
-3. **Save** the environment variables
+3. **Save Changes** button at the bottom
 4. Render will automatically redeploy the backend service with the new CORS settings
+5. Wait for the deployment to complete (check the "Events" tab)
+6. Test by visiting your frontend and checking the browser console
+
+**Troubleshooting CORS Errors:**
+- ✅ Make sure `CORS_ORIGINS` is set to your exact Vercel URL (e.g., `https://calebel.vercel.app`)
+- ✅ No trailing slash in the URL
+- ✅ Include `https://` protocol
+- ✅ Check backend logs in Render to see if CORS is blocking requests
+- ✅ After updating, wait for the backend to fully redeploy before testing
 
 **Note**: Without updating CORS_ORIGINS, your frontend won't be able to communicate with the backend API!
 

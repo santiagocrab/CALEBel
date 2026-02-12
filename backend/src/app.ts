@@ -19,9 +19,33 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT ? Number(process.env.PORT) : 4000;
 
+// CORS configuration
+const corsOrigins = process.env.CORS_ORIGINS 
+  ? process.env.CORS_ORIGINS.split(",").map(origin => origin.trim())
+  : ["*"];
+
+console.log("🌐 CORS Origins configured:", corsOrigins);
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGINS?.split(",") ?? "*",
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      // If CORS_ORIGINS is set to "*", allow all origins
+      if (corsOrigins.includes("*")) {
+        return callback(null, true);
+      }
+      
+      // Check if the origin is in the allowed list
+      if (corsOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      
+      // Reject the request
+      console.warn(`⚠️  CORS blocked origin: ${origin}`);
+      callback(new Error(`Not allowed by CORS: ${origin}`));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
