@@ -11,7 +11,7 @@ function canSend() {
   return Boolean(smtpUser && smtpPass);
 }
 
-function buildTransport() {
+function buildTransport(host: string, port: number) {
   if (!canSend()) {
     return null;
   }
@@ -24,23 +24,35 @@ function buildTransport() {
   console.log("   Pass Length:", smtpPass?.length || 0, "characters");
   
   return nodemailer.createTransport({
-    service: smtpHost.includes("gmail") ? "gmail" : undefined,
-    host: smtpHost,
-    port: smtpPort,
-    secure: smtpPort === 465,
+    service: host.includes("gmail") ? "gmail" : undefined,
+    host,
+    port,
+    secure: port === 465,
     auth: {
       user: smtpUser,
       pass: smtpPass
     },
-    connectionTimeout: 15000,
-    greetingTimeout: 15000,
-    socketTimeout: 20000
+    connectionTimeout: 30000,
+    greetingTimeout: 30000,
+    socketTimeout: 30000
   });
 }
 
+function getTransportCandidates() {
+  const candidates: Array<{ host: string; port: number }> = [
+    { host: smtpHost, port: smtpPort },
+  ];
+
+  // If Gmail is configured and primary is 587, try SSL 465 as fallback.
+  if (smtpHost.includes("gmail") && smtpPort !== 465) {
+    candidates.push({ host: smtpHost, port: 465 });
+  }
+
+  return candidates;
+}
+
 export async function sendEmail(to: string, subject: string, html: string) {
-  const transport = buildTransport();
-  if (!transport) {
+  if (!canSend()) {
     // eslint-disable-next-line no-console
     console.error("❌ Email skipped (SMTP not configured):", subject, to);
     console.error("   Missing SMTP configuration. Check environment variables:");
@@ -50,39 +62,49 @@ export async function sendEmail(to: string, subject: string, html: string) {
     return;
   }
   
-  try {
-    const info = await transport.sendMail({
-      from: fromAddress,
-      to,
-      subject,
-      html
-    });
-    // eslint-disable-next-line no-console
-    console.log("✅ Email sent successfully!");
-    console.log("   To:", to);
-    console.log("   Subject:", subject);
-    console.log("   Message ID:", info.messageId);
-    return info;
-  } catch (error: any) {
-    // eslint-disable-next-line no-console
-    console.error("❌ Failed to send email:", error);
-    console.error("   To:", to);
-    console.error("   Subject:", subject);
-    
-    // Provide helpful error messages for common issues
-    if (error.code === 'EAUTH' || error.responseCode === 535) {
-      console.error("");
-      console.error("⚠️  GMAIL AUTHENTICATION ERROR");
-      console.error("   Your Gmail app password is invalid or expired.");
-      console.error("   Please follow these steps:");
-      console.error("   1. Enable 2-Step Verification on your Google Account");
-      console.error("   2. Generate a new App Password: https://myaccount.google.com/apppasswords");
-      console.error("   3. Update SMTP_PASS in your .env file");
-      console.error("   4. Restart the backend server");
-      console.error("");
-      console.error("   See backend/GMAIL_SETUP.md for detailed instructions");
+  const candidates = getTransportCandidates();
+  let lastError: any = null;
+
+  for (const candidate of candidates) {
+    const transport = buildTransport(candidate.host, candidate.port);
+    if (!transport) continue;
+
+    try {
+      const info = await transport.sendMail({
+        from: fromAddress,
+        to,
+        subject,
+        html
+      });
+      console.log("✅ Email sent successfully!");
+      console.log("   To:", to);
+      console.log("   Subject:", subject);
+      console.log("   Message ID:", info.messageId);
+      console.log(`   SMTP: ${candidate.host}:${candidate.port}`);
+      return info;
+    } catch (error: any) {
+      lastError = error;
+      console.error(`❌ Failed via SMTP ${candidate.host}:${candidate.port}`, error?.code || error);
     }
-    
-    throw error;
   }
+
+  console.error("❌ Failed to send email:", lastError);
+  console.error("   To:", to);
+  console.error("   Subject:", subject);
+  
+  // Provide helpful error messages for common issues
+  if (lastError?.code === "EAUTH" || lastError?.responseCode === 535) {
+    console.error("");
+    console.error("⚠️  GMAIL AUTHENTICATION ERROR");
+    console.error("   Your Gmail app password is invalid or expired.");
+    console.error("   Please follow these steps:");
+    console.error("   1. Enable 2-Step Verification on your Google Account");
+    console.error("   2. Generate a new App Password: https://myaccount.google.com/apppasswords");
+    console.error("   3. Update SMTP_PASS in your environment variables");
+    console.error("   4. Restart/redeploy the backend service");
+    console.error("");
+    console.error("   See backend/GMAIL_SETUP.md for detailed instructions");
+  }
+
+  throw lastError;
 }
