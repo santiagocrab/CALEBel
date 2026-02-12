@@ -74,32 +74,52 @@ const Admin = () => {
   const resolveProofUrl = (proofUrl: string | null) => {
     if (!proofUrl) return null;
     
-    // If it's already a full URL
-    if (proofUrl.startsWith("http://") || proofUrl.startsWith("https://")) {
-      // If it's a backend URL (onrender.com), convert to use /api proxy
-      if (proofUrl.includes("onrender.com") || proofUrl.includes("localhost:4000") || proofUrl.includes("localhost:1000")) {
-        // Extract the path from the URL (e.g., /uploads/filename.jpg)
-        const urlObj = new URL(proofUrl);
-        const path = urlObj.pathname;
-        // Use the /api proxy route
-        return `/api${path}`;
+    console.log("🔍 Resolving payment proof URL:", proofUrl);
+    
+    try {
+      // If it's already a full URL
+      if (proofUrl.startsWith("http://") || proofUrl.startsWith("https://")) {
+        // If it's a backend URL (onrender.com), convert to use /api proxy
+        if (proofUrl.includes("onrender.com") || proofUrl.includes("localhost:4000") || proofUrl.includes("localhost:1000")) {
+          // Extract the path from the URL (e.g., /uploads/filename.jpg)
+          const urlObj = new URL(proofUrl);
+          const path = urlObj.pathname;
+          // Use the /api proxy route
+          const resolved = `/api${path}`;
+          console.log("✅ Converted backend URL to:", resolved);
+          return resolved;
+        }
+        // If it's already a valid external URL, use it as-is
+        console.log("✅ Using external URL as-is:", proofUrl);
+        return proofUrl;
       }
-      // If it's already a valid external URL, use it as-is
+      
+      // If it's a relative path starting with /uploads/
+      if (proofUrl.startsWith("/uploads/")) {
+        // Use the /api proxy route
+        const resolved = `/api${proofUrl}`;
+        console.log("✅ Converted relative path to:", resolved);
+        return resolved;
+      }
+      
+      // If it's just a filename or path without leading slash
+      if (proofUrl.includes("uploads/") || proofUrl.match(/^[a-zA-Z0-9_-]+\.[a-zA-Z0-9]+$/)) {
+        const resolved = `/api/uploads/${proofUrl.replace(/^.*uploads\//, "")}`;
+        console.log("✅ Converted filename to:", resolved);
+        return resolved;
+      }
+      
+      console.log("⚠️  Could not resolve URL, returning as-is:", proofUrl);
+      return proofUrl;
+    } catch (error) {
+      console.error("❌ Error resolving URL:", error);
+      // Fallback: try to construct a valid URL
+      if (proofUrl.includes("uploads/")) {
+        const filename = proofUrl.split("uploads/").pop() || proofUrl;
+        return `/api/uploads/${filename}`;
+      }
       return proofUrl;
     }
-    
-    // If it's a relative path starting with /uploads/
-    if (proofUrl.startsWith("/uploads/")) {
-      // Use the /api proxy route
-      return `/api${proofUrl}`;
-    }
-    
-    // If it's just a filename or path without leading slash
-    if (proofUrl.includes("uploads/") || proofUrl.match(/^[a-zA-Z0-9_-]+\.[a-zA-Z0-9]+$/)) {
-      return `/api/uploads/${proofUrl.replace(/^.*uploads\//, "")}`;
-    }
-    
-    return proofUrl;
   };
 
   // Authentication state
@@ -695,22 +715,48 @@ const Admin = () => {
                             </span>
                           </div>
                           {user.paymentProofUrl ? (
-                            <div className="flex items-center gap-2">
-                              <a
-                                href={resolveProofUrl(user.paymentProofUrl) || user.paymentProofUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-rose-pink hover:underline flex items-center gap-1 font-semibold"
-                                onClick={(e) => {
-                                  const url = resolveProofUrl(user.paymentProofUrl) || user.paymentProofUrl;
-                                  console.log("Opening payment proof URL:", url);
-                                  console.log("Original URL:", user.paymentProofUrl);
-                                }}
-                              >
-                                <Eye className="w-3 h-3" />
-                                View Proof
-                              </a>
-                              <span className="text-xs text-wine-rose/50">({user.paymentProofUrl.substring(0, 30)}...)</span>
+                            <div className="flex flex-col gap-2">
+                              <div className="flex items-center gap-2">
+                                <a
+                                  href={resolveProofUrl(user.paymentProofUrl) || user.paymentProofUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-rose-pink hover:underline flex items-center gap-1 font-semibold hover:text-wine-rose transition-colors"
+                                  onClick={(e) => {
+                                    const url = resolveProofUrl(user.paymentProofUrl) || user.paymentProofUrl;
+                                    console.log("🔗 Opening payment proof URL:", url);
+                                    console.log("📋 Original URL:", user.paymentProofUrl);
+                                  }}
+                                >
+                                  <Eye className="w-3 h-3" />
+                                  View Payment Proof
+                                </a>
+                              </div>
+                              {/* Image Preview */}
+                              <div className="mt-2 p-2 bg-rose-pink/10 rounded-lg border border-rose-pink/20">
+                                <img
+                                  src={resolveProofUrl(user.paymentProofUrl) || user.paymentProofUrl}
+                                  alt="Payment proof"
+                                  className="max-w-full h-auto max-h-48 rounded border border-rose-pink/30 cursor-pointer hover:opacity-90 transition-opacity"
+                                  onClick={() => {
+                                    const url = resolveProofUrl(user.paymentProofUrl) || user.paymentProofUrl;
+                                    window.open(url, '_blank');
+                                  }}
+                                  onError={(e) => {
+                                    console.error("❌ Failed to load payment proof image:", user.paymentProofUrl);
+                                    console.error("Resolved URL:", resolveProofUrl(user.paymentProofUrl));
+                                    const img = e.target as HTMLImageElement;
+                                    img.style.display = 'none';
+                                    const parent = img.parentElement;
+                                    if (parent) {
+                                      parent.innerHTML = `<p class="text-xs text-red-600">⚠️ Image not found. URL: ${user.paymentProofUrl}</p>`;
+                                    }
+                                  }}
+                                />
+                                <p className="text-xs text-wine-rose/60 mt-1 break-all">
+                                  {user.paymentProofUrl.length > 50 ? `${user.paymentProofUrl.substring(0, 50)}...` : user.paymentProofUrl}
+                                </p>
+                              </div>
                             </div>
                           ) : (
                             <span className="text-xs text-wine-rose/50 italic">No proof uploaded</span>
@@ -1011,19 +1057,42 @@ const Admin = () => {
                         </div>
                         {request.paymentProofUrl && (
                           <div className="mt-4 p-4 bg-rose-pink/10 rounded-xl border-2 border-rose-pink/20">
-                            <div className="flex items-center gap-2 mb-2">
+                            <div className="flex items-center gap-2 mb-3">
                               <ImageIcon className="w-4 h-4 text-rose-pink" />
                               <span className="text-sm font-semibold text-wine-rose">Payment Proof</span>
                             </div>
+                            {/* Image Preview */}
+                            <div className="mb-3">
+                              <img
+                                src={resolveProofUrl(request.paymentProofUrl) || request.paymentProofUrl}
+                                alt="Payment proof"
+                                className="max-w-full h-auto rounded-lg border-2 border-rose-pink/30 cursor-pointer hover:opacity-90 transition-opacity shadow-md"
+                                onClick={() => {
+                                  const url = resolveProofUrl(request.paymentProofUrl) || request.paymentProofUrl;
+                                  window.open(url, '_blank');
+                                }}
+                                onError={(e) => {
+                                  console.error("❌ Failed to load payment proof image:", request.paymentProofUrl);
+                                  console.error("Resolved URL:", resolveProofUrl(request.paymentProofUrl));
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                            </div>
                             <a
-                              href={resolveProofUrl(request.paymentProofUrl) || undefined}
+                              href={resolveProofUrl(request.paymentProofUrl) || request.paymentProofUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-2 text-sm text-rose-pink hover:text-wine-rose font-semibold hover:underline"
+                              onClick={() => {
+                                console.log("🔗 Opening rematch payment proof:", resolveProofUrl(request.paymentProofUrl));
+                              }}
                             >
                               <Eye className="w-4 h-4" />
-                              View Payment Screenshot
+                              Open in New Tab
                             </a>
+                            <p className="text-xs text-wine-rose/60 mt-2 break-all">
+                              {request.paymentProofUrl.length > 60 ? `${request.paymentProofUrl.substring(0, 60)}...` : request.paymentProofUrl}
+                            </p>
                           </div>
                         )}
                       </div>
