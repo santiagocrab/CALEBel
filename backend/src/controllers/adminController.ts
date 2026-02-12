@@ -586,6 +586,7 @@ export async function getCompatibilitySuggestions(req: Request, res: Response) {
     const currentProfile = currentUserResult.rows[0].profile;
 
     // Get all other users who are waiting and not already matched
+    // Include users with verified payment OR pending payment (to show all potential matches)
     const otherUsersResult = await query<{
       user_id: string;
       alias: string;
@@ -598,11 +599,10 @@ export async function getCompatibilitySuggestions(req: Request, res: Response) {
       FROM users u
       JOIN user_profiles up ON u.id = up.user_id
       WHERE u.id != $1 
-        AND u.status = 'waiting'
-        AND (up.profile->>'paymentStatus' = 'verified' OR up.profile->>'paymentStatus' IS NULL)
+        AND u.status IN ('waiting', 'pending_verification')
         AND NOT EXISTS (
           SELECT 1 FROM matches m 
-          WHERE (m.user1_id = u.id OR m.user2_id = u.id)
+          WHERE (m.user1_id = u.id OR m.user2_id = u.id) AND m.active = true
         )
       ORDER BY u.created_at DESC`,
       [userId]
@@ -620,17 +620,29 @@ export async function getCompatibilitySuggestions(req: Request, res: Response) {
         const sharedInterests = [...interests2].filter((i) => interests1.has(i));
         const totalUniqueInterests = new Set([...interests1, ...interests2]).size;
         
-        if (sharedInterests.length < 3) {
-          return null; // Skip if less than 3 shared interests
-        }
+        // Don't skip users with less than 3 shared interests - just give them a lower score
+        // This ensures we show suggestions even if interests don't match perfectly
         
         const interestRatio = sharedInterests.length / Math.max(totalUniqueInterests, 1);
-        const interestScore = Math.min(30 * (interestRatio * 1.5), 30);
+        let interestScore = 0;
+        if (sharedInterests.length >= 3) {
+          interestScore = Math.min(30 * (interestRatio * 1.5), 30);
+        } else if (sharedInterests.length > 0) {
+          // Give partial score for 1-2 shared interests
+          interestScore = sharedInterests.length * 5;
+        } else {
+          // Still give a small score even with no shared interests
+          interestScore = 2;
+        }
         totalScore += interestScore;
         if (sharedInterests.length >= 5) {
           reasons.push(`🌟 ${sharedInterests.length} shared interests`);
-        } else {
+        } else if (sharedInterests.length >= 3) {
           reasons.push(`✨ ${sharedInterests.length} shared interests`);
+        } else if (sharedInterests.length > 0) {
+          reasons.push(`💫 ${sharedInterests.length} shared interest${sharedInterests.length > 1 ? 's' : ''}`);
+        } else {
+          reasons.push(`🔍 Different interests - explore new connections`);
         }
 
         // 2. PREFERENCE COMPATIBILITY (20 points max)
@@ -753,6 +765,10 @@ export async function getCompatibilitySuggestions(req: Request, res: Response) {
     // Filter out null results and sort
     const validSuggestions = suggestions.filter(s => s !== null) as any[];
     validSuggestions.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
+
+    console.log(`📊 Compatibility suggestions for user ${userId}:`);
+    console.log(`   - Found ${otherUsersResult.rows.length} potential matches`);
+    console.log(`   - Generated ${validSuggestions.length} valid suggestions`);
 
     return res.json({ suggestions: validSuggestions });
   } catch (error: any) {

@@ -268,9 +268,15 @@ const Admin = () => {
       const data = await response.json();
       console.log("Compatibility suggestions loaded:", data);
       
+      const suggestions = data.suggestions || [];
+      if (suggestions.length === 0) {
+        console.warn(`No compatibility suggestions found for user ${userId}`);
+        setError(`No compatible users found. Try adjusting the search criteria or verify that there are other users in the system.`);
+      }
+      
       setCompatibilitySuggestions((prev) => ({ 
         ...prev, 
-        [userId]: data.suggestions || [] 
+        [userId]: suggestions
       }));
     } catch (err: any) {
       console.error("Error loading compatibility suggestions:", err);
@@ -686,7 +692,7 @@ const Admin = () => {
                           )}
                         </div>
                         {/* Compatibility Suggestions - Enhanced UI */}
-                        {compatibilitySuggestions[user.id] && compatibilitySuggestions[user.id].length > 0 && (
+                        {compatibilitySuggestions[user.id] && compatibilitySuggestions[user.id].length > 0 ? (
                           <div className="mt-4 pt-4 border-t-2 border-rose-pink/30">
                             <div className="flex items-center gap-2 mb-3">
                               <Heart className="w-4 h-4 text-rose-pink" />
@@ -794,7 +800,15 @@ const Admin = () => {
                               })}
                             </div>
                           </div>
-                        )}
+                        ) : compatibilitySuggestions[user.id] && compatibilitySuggestions[user.id].length === 0 && !loadingSuggestions[user.id] ? (
+                          <div className="mt-4 pt-4 border-t-2 border-rose-pink/30">
+                            <div className="text-center py-4">
+                              <AlertCircle className="w-8 h-8 mx-auto mb-2 text-wine-rose/50" />
+                              <p className="text-sm text-wine-rose/70 font-semibold">No compatible users found</p>
+                              <p className="text-xs text-wine-rose/50 mt-1">Try again later or manually match users</p>
+                            </div>
+                          </div>
+                        ) : null}
                         {loadingSuggestions[user.id] && (
                           <div className="mt-3 pt-3 border-t border-rose-pink/20">
                             <Loader className="w-4 h-4 animate-spin text-rose-pink mx-auto" />
