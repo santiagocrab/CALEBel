@@ -92,8 +92,14 @@ const PostChat = () => {
 
     try {
       if (choice === "reveal") {
-        await consentReveal(matchId, userId, true);
-        navigate("/reveal");
+        const result = await consentReveal(matchId, userId, true);
+        // If both users have revealed, navigate to reveal page
+        if (result.revealed) {
+          navigate("/reveal");
+        } else {
+          // Only current user has revealed, navigate to reveal page to show waiting message
+          navigate("/reveal");
+        }
         return;
       }
       if (choice === "recalibrate") {

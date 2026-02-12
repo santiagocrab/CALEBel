@@ -19,8 +19,23 @@ const RevealResult = () => {
       return;
     }
     fetchReveal(matchId, userId)
-      .then((res) => setData(res))
-      .catch((err) => setError(err instanceof Error ? err.message : "Unable to load reveal."))
+      .then((res) => {
+        // If status is pending, show appropriate message
+        if (res.status === "pending") {
+          setError(res.message || "Reveal not confirmed by both users.");
+          setData(null);
+        } else {
+          setData(res);
+        }
+      })
+      .catch((err) => {
+        // Handle 403 errors gracefully
+        if (err.message && err.message.includes("Reveal not confirmed")) {
+          setError("Waiting for your match to choose Reveal.");
+        } else {
+          setError(err instanceof Error ? err.message : "Unable to load reveal.");
+        }
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -44,11 +59,43 @@ const RevealResult = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border-2 border-red-200 rounded-2xl p-6 text-center"
+            className={`rounded-2xl p-6 text-center ${
+              error.includes("Waiting") 
+                ? "bg-amber-50 border-2 border-amber-200" 
+                : "bg-red-50 border-2 border-red-200"
+            }`}
           >
-            <p className="text-red-600 font-semibold">{error}</p>
-            <Link to="/" className="text-sm text-red-600 hover:underline mt-4 inline-block">
-              ← Back to Home
+            <div className="mb-4">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring" }}
+                className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mb-4"
+              >
+                <Heart className="w-8 h-8 text-white" />
+              </motion.div>
+            </div>
+            <p className={`font-semibold text-lg mb-2 ${
+              error.includes("Waiting") ? "text-amber-800" : "text-red-600"
+            }`}>
+              {error.includes("Waiting") ? "⏳ Waiting for Reveal" : "Reveal Status"}
+            </p>
+            <p className={`text-sm mb-4 ${
+              error.includes("Waiting") ? "text-amber-700" : "text-red-600"
+            }`}>
+              {error}
+            </p>
+            {error.includes("Waiting") && (
+              <p className="text-xs text-amber-600 mb-4">
+                Your match will be notified when you choose Reveal. Once both of you choose Reveal, you'll see each other's identity.
+              </p>
+            )}
+            <Link 
+              to="/post-chat" 
+              className="inline-flex items-center gap-2 text-sm text-wine-rose hover:text-rose-pink font-semibold transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Options
             </Link>
           </motion.div>
         ) : (

@@ -9,11 +9,32 @@ export async function getReveal(req: Request, res: Response) {
     return res.status(400).json({ error: "matchId and userId required." });
   }
 
-  const revealed = await bothConsented(matchId, "consent_reveal");
-  if (!revealed) {
-    return res.status(403).json({ error: "Reveal not confirmed by both users." });
+  // Check individual consent status
+  const consentResult = await query<{ user_id: string; consent_reveal: boolean }>(
+    "SELECT user_id, consent_reveal FROM consent WHERE match_id = $1",
+    [matchId]
+  );
+
+  const userConsents = consentResult.rows;
+  const currentUserConsented = userConsents.find(c => c.user_id === userId)?.consent_reveal || false;
+  const partnerConsented = userConsents.find(c => c.user_id !== userId)?.consent_reveal || false;
+  const bothRevealed = currentUserConsented && partnerConsented;
+
+  // If both haven't revealed, return status information
+  if (!bothRevealed) {
+    return res.json({
+      status: "pending",
+      currentUserConsented,
+      partnerConsented,
+      message: currentUserConsented 
+        ? "Waiting for your match to choose Reveal." 
+        : partnerConsented
+        ? "Please choose Reveal to see your match's identity."
+        : "Reveal not confirmed by both users."
+    });
   }
 
+  // Both have revealed - proceed with reveal data
   const participants = await getMatchParticipants(matchId);
   if (!participants) {
     return res.status(404).json({ error: "Match not found." });
@@ -34,6 +55,7 @@ export async function getReveal(req: Request, res: Response) {
   const isAnonymous = partnerProfile.participationMode === "anonymous";
   if (isAnonymous) {
     return res.json({
+      status: "revealed",
       mode: "anonymous",
       alias: partnerProfile.alias,
       meetup: {
@@ -44,6 +66,7 @@ export async function getReveal(req: Request, res: Response) {
   }
 
   return res.json({
+    status: "revealed",
     mode: "full",
     name: partnerProfile.fullName,
     college: partnerProfile.college,
