@@ -82,6 +82,12 @@ const Admin = () => {
     return proofUrl;
   };
 
+  // Authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [authError, setAuthError] = useState("");
+
   const [users, setUsers] = useState<User[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [rematchRequests, setRematchRequests] = useState<RematchRequest[]>([]);
@@ -96,6 +102,33 @@ const Admin = () => {
   const [matchingUsers, setMatchingUsers] = useState<{ user1: string; user2: string } | null>(null);
   const [compatibilitySuggestions, setCompatibilitySuggestions] = useState<Record<string, any[]>>({});
   const [loadingSuggestions, setLoadingSuggestions] = useState<Record<string, boolean>>({});
+
+  // Check if already authenticated
+  useEffect(() => {
+    const authStatus = localStorage.getItem("admin_authenticated");
+    if (authStatus === "true") {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    
+    if (username === "admin" && password === "cictsc123") {
+      setIsAuthenticated(true);
+      localStorage.setItem("admin_authenticated", "true");
+    } else {
+      setAuthError("Invalid username or password");
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem("admin_authenticated");
+    setUsername("");
+    setPassword("");
+  };
 
   useEffect(() => {
     loadData();
@@ -306,6 +339,66 @@ const Admin = () => {
       user.fullName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Authentication Screen
+  if (!isAuthenticated) {
+    return (
+      <PageBackground className="flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border-2 border-rose-pink/30 max-w-md w-full mx-4"
+        >
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-rose-pink to-wine-rose flex items-center justify-center">
+              <Shield className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="font-display text-3xl font-bold text-wine-rose mb-2">Admin Login</h1>
+            <p className="text-wine-rose/70">Enter your credentials to access the admin panel</p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            {authError && (
+              <div className="p-3 bg-red-50 border-2 border-red-200 rounded-lg text-red-600 text-sm">
+                {authError}
+              </div>
+            )}
+            
+            <div>
+              <label className="block text-sm font-semibold text-wine-rose mb-2">Username</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-rose-pink/30 text-wine-rose focus:outline-none focus:ring-2 focus:ring-rose-pink/40"
+                placeholder="Enter username"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-wine-rose mb-2">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-rose-pink/30 text-wine-rose focus:outline-none focus:ring-2 focus:ring-rose-pink/40"
+                placeholder="Enter password"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full px-6 py-3 bg-gradient-to-r from-rose-pink to-wine-rose text-white rounded-xl font-bold hover:shadow-lg transition-all hover:scale-105"
+            >
+              Login
+            </button>
+          </form>
+        </motion.div>
+      </PageBackground>
+    );
+  }
+
   if (loading) {
     return (
       <PageBackground className="flex items-center justify-center">
@@ -336,12 +429,20 @@ const Admin = () => {
                 <p className="text-wine-rose/70">Manage registrants, payments, and matches</p>
               </div>
             </div>
-            <button
-              onClick={loadData}
-              className="px-4 py-2 bg-rose-pink/10 text-rose-pink rounded-lg hover:bg-rose-pink/20 transition-all"
-            >
-              Refresh
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-red-500/10 text-red-600 rounded-lg hover:bg-red-500/20 transition-all font-semibold"
+              >
+                Logout
+              </button>
+              <button
+                onClick={loadData}
+                className="px-4 py-2 bg-rose-pink/10 text-rose-pink rounded-lg hover:bg-rose-pink/20 transition-all"
+              >
+                Refresh
+              </button>
+            </div>
           </div>
         </motion.div>
 
@@ -564,34 +665,113 @@ const Admin = () => {
                             </a>
                           )}
                         </div>
-                        {/* Compatibility Suggestions */}
+                        {/* Compatibility Suggestions - Enhanced UI */}
                         {compatibilitySuggestions[user.id] && compatibilitySuggestions[user.id].length > 0 && (
-                          <div className="mt-3 pt-3 border-t border-rose-pink/20">
-                            <p className="text-xs font-semibold text-wine-rose mb-2">Compatibility Suggestions:</p>
-                            <div className="space-y-2">
-                              {compatibilitySuggestions[user.id].slice(0, 3).map((suggestion: any, idx: number) => (
-                                <div
-                                  key={idx}
-                                  className="flex items-center justify-between p-2 bg-rose-pink/10 rounded-lg"
-                                >
-                                  <div className="flex-1">
-                                    <p className="text-xs font-semibold text-wine-rose">{suggestion.alias}</p>
-                                    <p className="text-xs text-wine-rose/70">{suggestion.email}</p>
-                                  </div>
-                                  <div className="text-right">
-                                    <p className="text-xs font-bold text-rose-pink">{suggestion.compatibilityScore}%</p>
-                                    <button
-                                      onClick={() => {
-                                        setMatchingUsers({ user1: user.id, user2: suggestion.userId });
-                                        calculateCompatibility(user.id, suggestion.userId);
-                                      }}
-                                      className="text-xs text-blue-600 hover:underline mt-1"
-                                    >
-                                      Match
-                                    </button>
-                                  </div>
-                                </div>
-                              ))}
+                          <div className="mt-4 pt-4 border-t-2 border-rose-pink/30">
+                            <div className="flex items-center gap-2 mb-3">
+                              <Heart className="w-4 h-4 text-rose-pink" />
+                              <p className="text-sm font-bold text-wine-rose">Top Compatibility Matches</p>
+                            </div>
+                            <div className="space-y-3">
+                              {compatibilitySuggestions[user.id].slice(0, 5).map((suggestion: any, idx: number) => {
+                                const scoreColor = 
+                                  suggestion.compatibilityScore >= 80 ? "from-green-500 to-emerald-600" :
+                                  suggestion.compatibilityScore >= 60 ? "from-rose-pink to-wine-rose" :
+                                  "from-yellow-500 to-orange-500";
+                                
+                                return (
+                                  <motion.div
+                                    key={idx}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    className="relative overflow-hidden rounded-xl border-2 border-rose-pink/30 bg-gradient-to-br from-white/90 to-rose-pink/5 hover:border-rose-pink/50 transition-all shadow-md hover:shadow-lg"
+                                  >
+                                    <div className="p-4">
+                                      <div className="flex items-start justify-between gap-3 mb-3">
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-2 mb-1">
+                                            <h4 className="font-bold text-wine-rose text-sm">{suggestion.alias}</h4>
+                                            {idx === 0 && (
+                                              <span className="px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold rounded-full">
+                                                BEST MATCH
+                                              </span>
+                                            )}
+                                          </div>
+                                          <p className="text-xs text-wine-rose/60 mb-2">{suggestion.email}</p>
+                                          
+                                          {/* Compatibility Score Badge */}
+                                          <div className="inline-flex items-center gap-2 mb-2">
+                                            <div className={`px-3 py-1 rounded-full bg-gradient-to-r ${scoreColor} text-white font-bold text-xs shadow-lg`}>
+                                              {suggestion.compatibilityScore}% Match
+                                            </div>
+                                            {suggestion.personality?.mbti && (
+                                              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold">
+                                                {suggestion.personality.mbti}
+                                              </span>
+                                            )}
+                                          </div>
+
+                                          {/* Reasons */}
+                                          <div className="flex flex-wrap gap-1.5 mt-2">
+                                            {suggestion.reasons.slice(0, 3).map((reason: string, rIdx: number) => (
+                                              <span
+                                                key={rIdx}
+                                                className="px-2 py-0.5 bg-rose-pink/20 text-wine-rose rounded-full text-xs"
+                                              >
+                                                {reason}
+                                              </span>
+                                            ))}
+                                          </div>
+
+                                          {/* Common Interests */}
+                                          {suggestion.commonInterests && suggestion.commonInterests.length > 0 && (
+                                            <div className="mt-2 pt-2 border-t border-rose-pink/20">
+                                              <p className="text-xs font-semibold text-wine-rose/70 mb-1">Shared Interests:</p>
+                                              <div className="flex flex-wrap gap-1">
+                                                {suggestion.commonInterests.slice(0, 4).map((interest: string, iIdx: number) => (
+                                                  <span
+                                                    key={iIdx}
+                                                    className="px-2 py-0.5 bg-gradient-to-r from-rose-pink/30 to-wine-rose/30 text-wine-rose rounded text-xs font-medium"
+                                                  >
+                                                    {interest}
+                                                  </span>
+                                                ))}
+                                                {suggestion.commonInterests.length > 4 && (
+                                                  <span className="px-2 py-0.5 text-wine-rose/60 text-xs">
+                                                    +{suggestion.commonInterests.length - 4} more
+                                                  </span>
+                                                )}
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                        
+                                        {/* Action Button */}
+                                        <button
+                                          onClick={() => {
+                                            setMatchingUsers({ user1: user.id, user2: suggestion.userId });
+                                            calculateCompatibility(user.id, suggestion.userId);
+                                          }}
+                                          className="px-4 py-2 bg-gradient-to-r from-rose-pink to-wine-rose text-white rounded-lg text-xs font-bold hover:shadow-lg transition-all hover:scale-105 shrink-0"
+                                        >
+                                          Match Now
+                                        </button>
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Score Bar */}
+                                    <div className="h-1.5 bg-wine-rose/10">
+                                      <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${suggestion.compatibilityScore}%` }}
+                                        transition={{ duration: 0.8, delay: idx * 0.1 }}
+                                        className={`h-full bg-gradient-to-r ${scoreColor}`}
+                                      />
+                                    </div>
+                                  </motion.div>
+                                );
+                              })}
                             </div>
                           </div>
                         )}

@@ -611,94 +611,150 @@ export async function getCompatibilitySuggestions(req: Request, res: Response) {
     const suggestions = await Promise.all(
       otherUsersResult.rows.map(async (row) => {
         const otherProfile = row.profile;
-        let score = 0;
+        let totalScore = 0;
         const reasons: string[] = [];
 
-        // MBTI compatibility
-        if (currentProfile.personality?.mbti && otherProfile.personality?.mbti) {
-          if (currentProfile.personality.mbti === otherProfile.personality.mbti) {
-            score += 15;
-            reasons.push("Same MBTI type");
+        // 1. INTERESTS MATCHING (30 points max)
+        const interests1 = new Set(currentProfile.interests || []);
+        const interests2 = new Set(otherProfile.interests || []);
+        const sharedInterests = [...interests2].filter((i) => interests1.has(i));
+        const totalUniqueInterests = new Set([...interests1, ...interests2]).size;
+        
+        if (sharedInterests.length < 3) {
+          return null; // Skip if less than 3 shared interests
+        }
+        
+        const interestRatio = sharedInterests.length / Math.max(totalUniqueInterests, 1);
+        const interestScore = Math.min(30 * (interestRatio * 1.5), 30);
+        totalScore += interestScore;
+        if (sharedInterests.length >= 5) {
+          reasons.push(`🌟 ${sharedInterests.length} shared interests`);
+        } else {
+          reasons.push(`✨ ${sharedInterests.length} shared interests`);
+        }
+
+        // 2. PREFERENCE COMPATIBILITY (20 points max)
+        const pref1 = currentProfile.preferred || {};
+        const pref2 = otherProfile.preferred || {};
+        let preferenceScore = 15;
+        if (pref1.college && pref1.college !== "Any" && pref1.college === otherProfile.college) preferenceScore += 2;
+        if (pref1.course && pref1.course !== "Any" && pref1.course === otherProfile.course) preferenceScore += 2;
+        if (pref1.yearLevel && pref1.yearLevel !== "Any" && pref1.yearLevel === otherProfile.yearLevel) preferenceScore += 1;
+        totalScore += Math.min(preferenceScore, 20);
+        if (preferenceScore >= 18) reasons.push("🎯 Perfect preference alignment");
+
+        // 3. PERSONALITY ALIGNMENT (25 points max)
+        const personality1 = currentProfile.personality ?? {};
+        const personality2 = otherProfile.personality ?? {};
+        
+        // MBTI (10 points)
+        if (personality1.mbti && personality2.mbti) {
+          if (personality1.mbti === personality2.mbti) {
+            totalScore += 10;
+            reasons.push(`🧠 Same MBTI type (${personality1.mbti})`);
           } else {
-            score += 5;
+            const mbtiCompatible = [
+              ["INTJ", "ENFP"], ["INTP", "ENTJ"], ["ENTJ", "INTP"], ["ENTP", "INFJ"],
+              ["INFJ", "ENTP"], ["INFP", "ESTJ"], ["ENFJ", "ISFP"], ["ENFP", "INTJ"],
+              ["ISTJ", "ESFP"], ["ISFJ", "ESTP"], ["ESTJ", "INFP"], ["ESFJ", "ISTP"],
+              ["ISTP", "ESFJ"], ["ISFP", "ENFJ"], ["ESTP", "ISFJ"], ["ESFP", "ISTJ"]
+            ];
+            const isCompatible = mbtiCompatible.some(
+              ([a, b]) => 
+                (a === personality1.mbti && b === personality2.mbti) ||
+                (b === personality1.mbti && a === personality2.mbti)
+            );
+            totalScore += isCompatible ? 7 : 4;
+            reasons.push("🧠 Compatible MBTI types");
           }
         }
 
-        // Zodiac compatibility
-        if (currentProfile.personality?.sunSign && otherProfile.personality?.sunSign) {
-          score += 10;
-          reasons.push("Zodiac compatibility");
-        }
-
-        // Social battery compatibility
-        if (currentProfile.personality?.socialBattery && otherProfile.personality?.socialBattery) {
-          if (currentProfile.personality.socialBattery === otherProfile.personality.socialBattery) {
-            score += 15;
-            reasons.push("Matching social battery");
+        // Social Battery (8 points)
+        if (personality1.socialBattery && personality2.socialBattery) {
+          if (personality1.socialBattery === personality2.socialBattery) {
+            totalScore += 8;
+            reasons.push("⚡ Matching social energy");
           } else {
-            score += 10;
-            reasons.push("Complementary social battery");
+            totalScore += 6;
+            reasons.push("⚡ Complementary social styles");
           }
         }
 
-        // Love languages overlap
+        // Zodiac (7 points)
+        if (personality1.sunSign && personality2.sunSign) {
+          if (personality1.sunSign === personality2.sunSign) {
+            totalScore += 7;
+            reasons.push(`⭐ Same zodiac sign (${personality1.sunSign})`);
+          } else {
+            const elements: Record<string, string[]> = {
+              fire: ["Aries", "Leo", "Sagittarius"],
+              earth: ["Taurus", "Virgo", "Capricorn"],
+              air: ["Gemini", "Libra", "Aquarius"],
+              water: ["Cancer", "Scorpio", "Pisces"]
+            };
+            const e1 = Object.keys(elements).find(k => elements[k].includes(personality1.sunSign));
+            const e2 = Object.keys(elements).find(k => elements[k].includes(personality2.sunSign));
+            totalScore += e1 === e2 ? 5 : 3;
+          }
+        }
+
+        // 4. LOVE LANGUAGES (20 points max)
         const loveLang1Receive = currentProfile.loveLanguageReceive || [];
         const loveLang2Provide = otherProfile.loveLanguageProvide || [];
         const loveLang1Provide = currentProfile.loveLanguageProvide || [];
         const loveLang2Receive = otherProfile.loveLanguageReceive || [];
-
-        const receiveMatch = loveLang1Receive.filter((lang: string) =>
-          loveLang2Provide.includes(lang)
-        ).length;
-        const provideMatch = loveLang1Provide.filter((lang: string) =>
-          loveLang2Receive.includes(lang)
-        ).length;
-
-        if (receiveMatch > 0 || provideMatch > 0) {
-          score += (receiveMatch + provideMatch) * 10;
-          reasons.push(`${receiveMatch + provideMatch} love language matches`);
+        
+        const receiveMatch = loveLang1Receive.filter((lang: string) => loveLang2Provide.includes(lang)).length;
+        const provideMatch = loveLang1Provide.filter((lang: string) => loveLang2Receive.includes(lang)).length;
+        const totalLoveLangMatches = receiveMatch + provideMatch;
+        
+        if (totalLoveLangMatches > 0) {
+          const perfectReciprocal = receiveMatch > 0 && provideMatch > 0;
+          totalScore += Math.min(totalLoveLangMatches * 6 + (perfectReciprocal ? 5 : 0), 20);
+          if (perfectReciprocal) {
+            reasons.push(`💕 Perfect love language match (${totalLoveLangMatches} languages)`);
+          } else {
+            reasons.push(`💖 Love language compatibility`);
+          }
         }
 
-        // Interests overlap
-        const interests1 = currentProfile.interests || [];
-        const interests2 = otherProfile.interests || [];
-        const commonInterests = interests1.filter((interest: string) =>
-          interests2.includes(interest)
-        );
-
-        if (commonInterests.length > 0) {
-          score += commonInterests.length * 5;
-          reasons.push(`${commonInterests.length} shared interests`);
+        // 5. BONUS FACTORS (5 points max)
+        const year1 = parseInt(String(currentProfile.yearLevel || "0").replace(/\D/g, ""));
+        const year2 = parseInt(String(otherProfile.yearLevel || "0").replace(/\D/g, ""));
+        if (year1 > 0 && year2 > 0) {
+          const yearDiff = Math.abs(year1 - year2);
+          if (yearDiff === 0) totalScore += 3;
+          else if (yearDiff === 1) totalScore += 2;
+          else if (yearDiff === 2) totalScore += 1;
         }
 
-        // Preferred compatibility
-        const pref1 = currentProfile.preferred || {};
-        const pref2 = otherProfile.preferred || {};
-
-        if (
-          (pref1.college === "Any" || pref1.college === otherProfile.college) &&
-          (pref2.college === "Any" || pref2.college === currentProfile.college)
-        ) {
-          score += 5;
+        if (currentProfile.college && otherProfile.college && currentProfile.college === otherProfile.college) {
+          totalScore += 2;
         }
 
-        score = Math.min(score, 100);
+        totalScore = Math.min(Math.floor(totalScore), 100);
 
         return {
           userId: row.user_id,
           alias: row.alias,
           email: otherProfile.email || "N/A",
-          compatibilityScore: score,
-          reasons: reasons.length > 0 ? reasons : ["Basic compatibility"],
-          commonInterests: commonInterests
+          compatibilityScore: totalScore,
+          reasons: reasons.length > 0 ? reasons : ["✨ Great compatibility potential"],
+          commonInterests: sharedInterests,
+          personality: {
+            mbti: personality2.mbti,
+            zodiac: personality2.sunSign,
+            socialBattery: personality2.socialBattery
+          }
         };
       })
     );
 
-    // Sort by compatibility score (highest first)
-    suggestions.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
+    // Filter out null results and sort
+    const validSuggestions = suggestions.filter(s => s !== null) as any[];
+    validSuggestions.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
 
-    return res.json({ suggestions });
+    return res.json({ suggestions: validSuggestions });
   } catch (error: any) {
     console.error("Error getting compatibility suggestions:", error);
     return res.status(500).json({
