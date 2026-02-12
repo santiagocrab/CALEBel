@@ -227,27 +227,7 @@ function matchReasons(u: WaitingUser, v: WaitingUser) {
     }
   }
   
-  // Gender identity match
-  const genderIdentityU = sogiescU.genderIdentity || "";
-  const genderIdentityV = sogiescV.genderIdentity || "";
-  if (genderIdentityU && genderIdentityV) {
-    if (genderIdentityU === genderIdentityV) {
-      reasons.push(`🌈 Matching gender identity (${genderIdentityU})`);
-    } else {
-      reasons.push(`🌈 Compatible gender identities`);
-    }
-  }
-  
-  // Gender expression match
-  const genderExpressionU = sogiescU.genderExpression || "";
-  const genderExpressionV = sogiescV.genderExpression || "";
-  if (genderExpressionU && genderExpressionV) {
-    if (genderExpressionU === genderExpressionV) {
-      reasons.push(`✨ Matching gender expression (${genderExpressionU})`);
-    } else {
-      reasons.push(`✨ Complementary expressions`);
-    }
-  }
+  // Gender identity and expression are NOT used for matching reasons
   
   // ===== PREFERRED PERSON MATCHING =====
   
