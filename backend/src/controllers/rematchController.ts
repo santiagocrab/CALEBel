@@ -239,3 +239,89 @@ export async function getRematchStatus(req: Request, res: Response) {
     });
   }
 }
+
+/**
+ * Update user blueprint (for rematch)
+ * POST /api/rematch/update-blueprint
+ * Body: { userId: string, blueprint: { alias, sogiesc, personality, loveLanguageReceive, loveLanguageProvide, interests, preferred } }
+ */
+export async function updateBlueprint(req: Request, res: Response) {
+  try {
+    const { userId, blueprint } = req.body as {
+      userId: string;
+      blueprint: {
+        alias?: string;
+        sogiesc?: any;
+        personality?: any;
+        loveLanguageReceive?: string[];
+        loveLanguageProvide?: string[];
+        interests?: string[];
+        preferred?: any;
+      };
+    };
+
+    if (!userId || !blueprint) {
+      return res.status(400).json({
+        error: "userId and blueprint required."
+      });
+    }
+
+    // Check if user exists
+    const userResult = await query<{ id: string }>(
+      "SELECT id FROM users WHERE id = $1",
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    // Get current profile
+    const profileResult = await query<{ profile: any }>(
+      "SELECT profile FROM user_profiles WHERE user_id = $1",
+      [userId]
+    );
+
+    if (profileResult.rows.length === 0) {
+      return res.status(404).json({ error: "User profile not found." });
+    }
+
+    const currentProfile = profileResult.rows[0].profile || {};
+
+    // Update alias in users table if provided
+    if (blueprint.alias) {
+      await query("UPDATE users SET alias = $1 WHERE id = $2", [blueprint.alias, userId]);
+    }
+
+    // Merge blueprint updates into existing profile
+    const updatedProfile = {
+      ...currentProfile,
+      ...(blueprint.alias && { alias: blueprint.alias }),
+      ...(blueprint.sogiesc && { sogiesc: { ...currentProfile.sogiesc, ...blueprint.sogiesc } }),
+      ...(blueprint.personality && { personality: { ...currentProfile.personality, ...blueprint.personality } }),
+      ...(blueprint.loveLanguageReceive && { loveLanguageReceive: blueprint.loveLanguageReceive }),
+      ...(blueprint.loveLanguageProvide && { loveLanguageProvide: blueprint.loveLanguageProvide }),
+      ...(blueprint.interests && { interests: blueprint.interests }),
+      ...(blueprint.preferred && { preferred: { ...currentProfile.preferred, ...blueprint.preferred } })
+    };
+
+    // Update profile in database
+    await query(
+      "UPDATE user_profiles SET profile = $1 WHERE user_id = $2",
+      [updatedProfile, userId]
+    );
+
+    console.log(`\n📝 Blueprint updated for user: ${userId}\n`);
+
+    return res.json({
+      success: true,
+      message: "Blueprint updated successfully."
+    });
+  } catch (error: any) {
+    console.error("Error updating blueprint:", error);
+    return res.status(500).json({
+      error: "Failed to update blueprint",
+      details: error.message
+    });
+  }
+}
