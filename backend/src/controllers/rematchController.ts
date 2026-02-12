@@ -246,6 +246,19 @@ export async function getRematchStatus(req: Request, res: Response) {
  */
 export async function getAllRematchRequests(req: Request, res: Response) {
   try {
+    // Check if rematch_requests table exists
+    const tableCheck = await query<{ exists: boolean }>(
+      `SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'rematch_requests'
+      ) as exists`
+    );
+
+    if (!tableCheck.rows[0]?.exists) {
+      return res.json({ requests: [], total: 0 });
+    }
+
     const result = await query<{
       id: string;
       user_id: string;
@@ -253,8 +266,8 @@ export async function getAllRematchRequests(req: Request, res: Response) {
       payment_proof_url: string;
       status: string;
       created_at: string;
-      alias: string;
-      email: string;
+      alias: string | null;
+      email: string | null;
     }>(
       `SELECT 
         rr.id,
@@ -264,7 +277,7 @@ export async function getAllRematchRequests(req: Request, res: Response) {
         rr.status,
         rr.created_at,
         u.alias,
-        COALESCE(up.profile->>'email', u.email) as email
+        COALESCE(up.profile->>'email', 'N/A') as email
       FROM rematch_requests rr
       JOIN users u ON rr.user_id = u.id
       LEFT JOIN user_profiles up ON u.id = up.user_id
@@ -285,9 +298,11 @@ export async function getAllRematchRequests(req: Request, res: Response) {
     return res.json({ requests, total: requests.length });
   } catch (error: any) {
     console.error("Error getting rematch requests:", error);
-    return res.status(500).json({
-      error: "Failed to get rematch requests",
-      details: error.message
+    // Return empty array instead of error to prevent admin panel from breaking
+    return res.json({ 
+      requests: [], 
+      total: 0,
+      error: error.message 
     });
   }
 }
