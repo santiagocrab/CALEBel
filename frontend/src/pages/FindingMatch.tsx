@@ -1,28 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { fetchMatch } from "@/lib/api";
 import { PageBackground } from "@/components/PageBackground";
 
-const PROCESSING_MESSAGES = [
-  "Scanning compatibility matrices...",
-  "Analyzing love languages...",
-  "Matching zodiac signs...",
-  "Calculating social battery compatibility...",
-  "Finding your perfect Ka-Label...",
-  "Almost there...",
-];
-
 export default function FindingMatch() {
-  const [messageIndex, setMessageIndex] = useState(0);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setMessageIndex((prev) => (prev + 1) % PROCESSING_MESSAGES.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const userId = localStorage.getItem("calebelUserId");
@@ -30,30 +12,6 @@ export default function FindingMatch() {
       navigate("/register");
       return;
     }
-
-    const checkMatch = async () => {
-      try {
-        const data = await fetchMatch(userId);
-        if (data.status === "matched") {
-          // Save match info and redirect to match result/chat
-          if (data.matchId) {
-            localStorage.setItem("calebelMatchId", data.matchId);
-            localStorage.setItem("calebelMatchAlias", data.alias || "");
-          }
-          navigate("/match");
-        } else if (data.status === "waiting") {
-          // User is waiting for a match - keep showing this page
-          // The page will continue polling
-        }
-      } catch (err) {
-        console.error("Error checking match:", err);
-      }
-    };
-
-    const pollInterval = setInterval(checkMatch, 3000);
-    checkMatch();
-
-    return () => clearInterval(pollInterval);
   }, [navigate]);
 
   return (
@@ -101,7 +59,7 @@ export default function FindingMatch() {
         </motion.div>
 
         <motion.h1
-          className="text-4xl font-bold text-wine-rose mb-4"
+          className="text-4xl font-bold text-wine-rose mb-6"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
@@ -109,25 +67,29 @@ export default function FindingMatch() {
           Finding Your Ka-Label...
         </motion.h1>
 
-        <motion.p
-          key={messageIndex}
-          className="text-rose-pink text-lg mb-4"
+        <motion.div
+          className="text-center mb-8"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
+          transition={{ delay: 0.4 }}
         >
-          {PROCESSING_MESSAGES[messageIndex]}
-        </motion.p>
+          <p className="text-rose-pink text-xl font-semibold mb-4">
+            We are currently finding your ka-label
+          </p>
+          <p className="text-wine-rose/80 text-lg">
+            We will email you if we find it 📧
+          </p>
+        </motion.div>
         
         <motion.p
           className="text-wine-rose/70 text-sm mb-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.6 }}
         >
-          We're searching for your perfect match. This may take up to 24 hours.
+          Please check your email inbox for updates. 
           <br />
-          <span className="font-semibold">You'll receive an email when we find your Ka-Label! 📧</span>
+          <span className="font-semibold">You'll receive a notification email once we find your perfect match! 💕</span>
         </motion.p>
 
         <div className="flex justify-center gap-2">
