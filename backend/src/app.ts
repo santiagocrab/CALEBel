@@ -60,6 +60,17 @@ const corsOptions = {
       return callback(null, true);
     }
     
+    // Allow Vercel preview URLs (for development/preview deployments)
+    // Vercel preview URLs match pattern: https://*-*.vercel.app or https://*-*-*.vercel.app
+    if (origin.includes(".vercel.app") && (
+      origin.match(/^https:\/\/[a-z0-9-]+-[a-z0-9]+-[a-z0-9]+\.vercel\.app$/) ||
+      origin.match(/^https:\/\/[a-z0-9-]+-[a-z0-9]+\.vercel\.app$/) ||
+      origin.includes("calebel") // Allow any Vercel URL containing "calebel"
+    )) {
+      console.log(`✅ CORS: Allowing Vercel preview URL: ${origin}`);
+      return callback(null, true);
+    }
+    
     // Also check without protocol (just in case)
     const originWithoutProtocol = origin.replace(/^https?:\/\//, "");
     const originsWithoutProtocol = corsOrigins.map(o => o.replace(/^https?:\/\//, ""));
@@ -88,7 +99,13 @@ app.options("*", (req, res) => {
   const origin = req.headers.origin;
   
   // Check if origin should be allowed
-  if (!origin || allowAllOrigins || corsOrigins.includes("*") || corsOrigins.includes(origin)) {
+  const isAllowed = !origin || 
+    allowAllOrigins || 
+    corsOrigins.includes("*") || 
+    corsOrigins.includes(origin || "") ||
+    (origin && origin.includes(".vercel.app") && origin.includes("calebel")); // Allow Vercel preview URLs
+  
+  if (isAllowed) {
     res.header("Access-Control-Allow-Origin", origin || "*");
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
     res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept");
