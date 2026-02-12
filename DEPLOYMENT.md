@@ -97,13 +97,23 @@ The backend will automatically run database migrations when it starts in product
 
 ### Step 3: Configure Project
 - **Framework Preset**: Vite
-- **Root Directory**: `frontend`
-- **Build Command**: `npm run build`
+- **Root Directory**: `frontend` ⚠️ **CRITICAL - Must be set!**
+- **Build Command**: `npm run build` (or leave empty to use `frontend/vercel.json`)
 - **Output Directory**: `dist`
-- **Install Command**: `npm install`
+- **Install Command**: `npm install` (or leave empty to use `frontend/vercel.json`)
+
+**⚠️ IMPORTANT**: 
+- The **Root Directory** MUST be set to `frontend` (not `/frontend` or `./frontend`, just `frontend`)
+- If Root Directory is not set, Vercel will try to build from the repository root and fail
+- After setting Root Directory, Vercel will automatically use `frontend/vercel.json` for configuration
 
 ### Step 4: Deploy
 Click "Deploy" and wait for build to complete.
+
+**Troubleshooting Build Issues:**
+- If you see `npm install` running at root level (not in `frontend`), the Root Directory is not set correctly
+- Go to **Settings** → **General** → **Root Directory** and set it to `frontend`
+- Save and trigger a new deployment
 
 **Note**: After deployment, you'll get a Vercel URL like `https://calebel.vercel.app`. You'll need this URL for the next step!
 
