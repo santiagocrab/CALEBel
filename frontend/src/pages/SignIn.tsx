@@ -31,10 +31,15 @@ const SignIn = () => {
       setError("");
     } catch (err) {
       console.error("Sign-in error:", err);
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Failed to send sign-in code. Please check if the backend is running.";
+      let message = "Failed to send sign-in code. Please try again.";
+      
+      if (err instanceof Error) {
+        message = err.message;
+      } else if (typeof err === 'string') {
+        message = err;
+      } else {
+        message = String(err);
+      }
       
       const isAccountNotFound = 
         message.toLowerCase().includes("no account found") ||
@@ -106,8 +111,18 @@ const SignIn = () => {
         }, 1000);
       }
     } catch (err) {
-      console.error("Sign-in error:", err);
-      setError(err instanceof Error ? err.message : "Invalid code. Please try again.");
+      console.error("Sign-in verification error:", err);
+      let message = "Invalid code. Please try again.";
+      
+      if (err instanceof Error) {
+        message = err.message;
+      } else if (typeof err === 'string') {
+        message = err;
+      } else {
+        message = String(err);
+      }
+      
+      setError(message);
       setLoading(false);
     }
   };

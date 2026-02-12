@@ -306,8 +306,17 @@ const Register = () => {
                     navigate("/verify");
                   } catch (err) {
                     console.error("Registration error:", err);
-                    const errorMessage = err instanceof Error ? err.message : "Registration failed. Please try again.";
-                    if (errorMessage.includes("already registered")) {
+                    let errorMessage = "Registration failed. Please try again.";
+                    
+                    if (err instanceof Error) {
+                      errorMessage = err.message;
+                    } else if (typeof err === 'string') {
+                      errorMessage = err;
+                    } else {
+                      errorMessage = String(err);
+                    }
+                    
+                    if (errorMessage.includes("already registered") || errorMessage.toLowerCase().includes("already exists")) {
                       setError("User is already registered. Please sign in and find your Ka-Label.");
                     } else {
                       setError(errorMessage);

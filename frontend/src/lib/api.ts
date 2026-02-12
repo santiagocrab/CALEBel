@@ -4,8 +4,14 @@ async function handleFetch(url: string, options: RequestInit) {
   try {
     const response = await fetch(url, options);
     if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error.error || `Request failed with status ${response.status}`);
+      let errorData: any = {};
+      try {
+        errorData = await response.json();
+      } catch {
+        // If response is not JSON, use status text
+        errorData = { error: `Request failed with status ${response.status}` };
+      }
+      throw new Error(errorData.error || errorData.message || `Request failed with status ${response.status}`);
     }
     return response.json();
   } catch (err) {
@@ -15,16 +21,20 @@ async function handleFetch(url: string, options: RequestInit) {
       if (url.includes("onrender.com") || url.includes("calebel.onrender.com")) {
         throw new Error(
           `CORS Error: The backend is blocking requests from this origin. ` +
-          `Please ensure CORS_ORIGINS environment variable in Render includes: ${window.location.origin}. ` +
+          `Please ensure CORS_ORIGINS environment variable in Render includes: ${typeof window !== 'undefined' ? window.location.origin : 'your frontend URL'}. ` +
           `Check DEPLOYMENT.md for instructions.`
         );
       }
-      throw new Error(`Cannot connect to backend server. Please make sure the backend is running.`);
+      throw new Error(`Cannot connect to backend server at ${url}. Please make sure the backend is running and the API URL is correct.`);
     }
     if (err instanceof Error && (err.message.includes("NetworkError") || err.message.includes("ERR_"))) {
-      throw new Error(`Network error. Please check your connection and ensure the backend is running.`);
+      throw new Error(`Network error. Please check your connection and ensure the backend is running at ${API_BASE}.`);
     }
-    throw err;
+    // Re-throw with better message if it's already an Error
+    if (err instanceof Error) {
+      throw err;
+    }
+    throw new Error(`An unexpected error occurred: ${String(err)}`);
   }
 }
 
