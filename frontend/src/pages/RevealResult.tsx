@@ -103,7 +103,7 @@ const RevealResult = () => {
           <Link to="/" className="text-sm text-gold hover:underline font-medium">← Back to Home</Link>
         </div>
       </div>
-    </div>
+    </PageBackground>
   );
 };
 

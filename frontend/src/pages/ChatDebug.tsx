@@ -268,7 +268,7 @@ const ChatDebug = () => {
           </Link>
         </div>
       </motion.div>
-    </div>
+    </PageBackground>
   );
 };
 

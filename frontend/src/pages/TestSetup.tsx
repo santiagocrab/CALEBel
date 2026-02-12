@@ -339,7 +339,7 @@ const TestSetup = () => {
           </Link>
         </div>
       </motion.div>
-    </div>
+    </PageBackground>
   );
 };
 

@@ -215,7 +215,7 @@ const Rematch = () => {
           )}
         </motion.div>
       </div>
-    </div>
+    </PageBackground>
   );
 };
 

@@ -550,7 +550,7 @@ const ChatChamber = () => {
           </div>
         )}
       </div>
-    </div>
+    </PageBackground>
   );
 };
 

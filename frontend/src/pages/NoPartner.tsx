@@ -82,7 +82,7 @@ const NoPartner = () => {
           </Link>
         </motion.div>
       </motion.div>
-    </div>
+    </PageBackground>
   );
 };
 

@@ -148,6 +148,6 @@ export default function FindingMatch() {
           ))}
         </div>
       </motion.div>
-    </div>
+    </PageBackground>
   );
 }
