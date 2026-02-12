@@ -85,8 +85,63 @@ const Register = () => {
   };
 
   const update = (key: string, value: any) => setFormData((prev) => ({ ...prev, [key]: value }));
-  const next = () => setStep((s) => Math.min(s + 1, 5));
-  const prev = () => setStep((s) => Math.max(s - 1, 0));
+  
+  const validateStep = (stepNum: number): string | null => {
+    switch (stepNum) {
+      case 0: // Identity
+        if (!formData.name?.trim()) return "Full Name is required";
+        if (!formData.email?.trim()) return "WVSU Email is required";
+        if (!formData.email?.includes("@wvsu.edu.ph")) return "Please use a valid WVSU email address";
+        if (!formData.dob) return "Date of Birth is required";
+        if (!formData.college) return "College is required";
+        if (!formData.course?.trim()) return "Course is required";
+        if (!formData.year) return "Year Level is required";
+        if (!formData.gcash?.trim()) return "GCash Reference Number is required";
+        if (!formData.proofUrl) return "Proof of Payment is required";
+        return null;
+      case 1: // Privacy
+        if (!formData.privacyMode) return "Please select a privacy mode";
+        if (!formData.alias?.trim()) return "Alias is required";
+        return null;
+      case 2: // SOGIE
+        if (!formData.orientation) return "Sexual Orientation is required";
+        if (!formData.genderIdentity) return "Gender Identity is required";
+        return null;
+      case 3: // Personality
+        if (!formData.zodiac) return "Astrology Sun Sign is required";
+        if (!formData.mbti) return "MBTI Type is required";
+        if (!formData.socialBattery) return "Social Battery is required";
+        if (!formData.loveLang_receive || formData.loveLang_receive.length === 0) return "Please select at least one Love Language (how you receive)";
+        if (!formData.loveLang_provide || formData.loveLang_provide.length === 0) return "Please select at least one Love Language (how you give)";
+        return null;
+      case 4: // Interests
+        if (!formData.vibes || formData.vibes.length < 3) return "Please select at least 3 interests";
+        return null;
+      case 5: // Terms
+        if (!formData.consent1) return "Please agree to all terms";
+        if (!formData.consent2) return "Please agree to all terms";
+        if (!formData.consent3) return "Please agree to all terms";
+        if (!formData.consent4) return "Please agree to all terms";
+        return null;
+      default:
+        return null;
+    }
+  };
+
+  const next = () => {
+    const validationError = validateStep(step);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    setError("");
+    setStep((s) => Math.min(s + 1, 5));
+  };
+  
+  const prev = () => {
+    setError("");
+    setStep((s) => Math.max(s - 1, 0));
+  };
 
   if (submitted) {
     return (
@@ -167,7 +222,10 @@ const Register = () => {
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
             {step < 5 ? (
-              <button onClick={next} className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-gold text-navy-deep text-sm font-bold shadow-gold hover:scale-105 transition-transform">
+              <button 
+                onClick={next} 
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-gold text-navy-deep text-sm font-bold shadow-gold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 Next <ArrowRight className="w-4 h-4" />
               </button>
             ) : (
@@ -264,7 +322,15 @@ const Register = () => {
               </button>
             )}
           </div>
-          {error && <p className="text-center text-sm text-destructive mt-4">{error}</p>}
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center text-sm text-destructive mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-xl"
+            >
+              {error}
+            </motion.div>
+          )}
         </motion.div>
       </div>
     </div>
