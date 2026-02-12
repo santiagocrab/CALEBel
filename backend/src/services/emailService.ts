@@ -1,13 +1,14 @@
 import nodemailer from "nodemailer";
 
-const smtpHost = process.env.SMTP_HOST;
+const smtpHost = (process.env.SMTP_HOST || "smtp.gmail.com").trim();
 const smtpPort = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587;
-const smtpUser = process.env.SMTP_USER;
-const smtpPass = process.env.SMTP_PASS;
-const fromAddress = process.env.SMTP_FROM ?? "CALEBel <no-reply@calebel.local>";
+const smtpUser = process.env.SMTP_USER?.trim();
+// Google app passwords are often shown with spaces; strip them automatically.
+const smtpPass = process.env.SMTP_PASS?.replace(/\s+/g, "");
+const fromAddress = process.env.SMTP_FROM ?? (smtpUser ? `CALEBel <${smtpUser}>` : "CALEBel <no-reply@calebel.local>");
 
 function canSend() {
-  return smtpHost && smtpUser && smtpPass;
+  return Boolean(smtpUser && smtpPass);
 }
 
 function buildTransport() {
@@ -23,13 +24,17 @@ function buildTransport() {
   console.log("   Pass Length:", smtpPass?.length || 0, "characters");
   
   return nodemailer.createTransport({
+    service: smtpHost.includes("gmail") ? "gmail" : undefined,
     host: smtpHost,
     port: smtpPort,
     secure: smtpPort === 465,
     auth: {
       user: smtpUser,
       pass: smtpPass
-    }
+    },
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000
   });
 }
 
