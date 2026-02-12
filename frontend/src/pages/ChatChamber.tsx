@@ -177,7 +177,7 @@ const ChatChamber = () => {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:4000/api/test/send-message-as-partner", {
+      const response = await fetch("/api/test/send-message-as-partner", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -83,25 +83,25 @@ const Admin = () => {
       
       // Check if backend is reachable first
       try {
-        await fetch("http://localhost:4000/health", { method: "GET", signal: AbortSignal.timeout(3000) });
+        await fetch("/health", { method: "GET", signal: AbortSignal.timeout(3000) });
       } catch (healthErr) {
-        throw new Error("Cannot connect to backend server. Please make sure the backend is running on port 4000.");
+        throw new Error("Cannot connect to backend server. Please make sure the backend is running.");
       }
 
       const [usersRes, matchesRes, statsRes] = await Promise.all([
-        fetch("http://localhost:4000/api/admin/users", { 
+        fetch("/api/admin/users", { 
           method: "GET",
           headers: { "Content-Type": "application/json" }
         }).catch((e) => {
           throw new Error(`Failed to fetch users: ${e.message}`);
         }),
-        fetch("http://localhost:4000/api/admin/matches", { 
+        fetch("/api/admin/matches", { 
           method: "GET",
           headers: { "Content-Type": "application/json" }
         }).catch((e) => {
           throw new Error(`Failed to fetch matches: ${e.message}`);
         }),
-        fetch("http://localhost:4000/api/admin/stats", { 
+        fetch("/api/admin/stats", { 
           method: "GET",
           headers: { "Content-Type": "application/json" }
         }).catch((e) => {
@@ -132,7 +132,7 @@ const Admin = () => {
       setError(""); // Clear any previous errors
     } catch (err: any) {
       console.error("Error loading admin data:", err);
-      setError(err.message || "Failed to load admin data. Make sure the backend is running on port 4000.");
+      setError(err.message || "Failed to load admin data. Make sure the backend is running.");
     } finally {
       setLoading(false);
     }
@@ -140,7 +140,7 @@ const Admin = () => {
 
   const verifyPayment = async (userId: string, verified: boolean) => {
     try {
-      const response = await fetch("http://localhost:4000/api/admin/verify-payment", {
+      const response = await fetch("/api/admin/verify-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, verified })
@@ -167,7 +167,7 @@ const Admin = () => {
     setError(""); // Clear previous errors
     
     try {
-      const response = await fetch(`http://localhost:4000/api/admin/compatibility-suggestions/${userId}`, {
+      const response = await fetch(`/api/admin/compatibility-suggestions/${userId}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" }
       });
@@ -196,7 +196,7 @@ const Admin = () => {
     setCalculating(true);
     setCompatibilityResult(null);
     try {
-      const response = await fetch("http://localhost:4000/api/admin/calculate-compatibility", {
+      const response = await fetch("/api/admin/calculate-compatibility", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId1, userId2 })
@@ -217,7 +217,7 @@ const Admin = () => {
 
   const createMatch = async (userId1: string, userId2: string) => {
     try {
-      const response = await fetch("http://localhost:4000/api/admin/create-match", {
+      const response = await fetch("/api/admin/create-match", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId1, userId2 })

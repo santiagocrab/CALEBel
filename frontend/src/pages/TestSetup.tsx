@@ -19,7 +19,7 @@ const TestSetup = () => {
     setResult(null);
 
     try {
-      const response = await fetch("http://localhost:4000/api/test/create-accounts", {
+      const response = await fetch("/api/test/create-accounts", {
         method: "POST",
         headers: { "Content-Type": "application/json" }
       });
@@ -56,7 +56,7 @@ const TestSetup = () => {
     setAccountCheck(null);
 
     try {
-      const response = await fetch("http://localhost:4000/api/test/check-accounts", {
+      const response = await fetch("/api/test/check-accounts", {
         method: "GET",
         headers: { "Content-Type": "application/json" }
       });
@@ -81,7 +81,7 @@ const TestSetup = () => {
     setResult(null);
 
     try {
-      const response = await fetch("http://localhost:4000/api/test/match-users", {
+      const response = await fetch("/api/test/match-users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email1, email2 })
