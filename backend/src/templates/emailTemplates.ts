@@ -123,7 +123,7 @@ export function generateSignInEmail(code: string): string {
   `.trim();
 }
 
-export function generateMatchFoundEmail(compatibilityScore: number, reasons: string[], websiteUrl: string): string {
+export function generateMatchFoundEmail(compatibilityScore: number, reasons: string[], websiteUrl: string, isAdminMatch: boolean = false): string {
   const reasonsList = reasons.length > 0 
     ? reasons.map(r => `<li style="margin: 8px 0; color: #850E35;">${r}</li>`).join("")
     : "<li style=\"margin: 8px 0; color: #850E35;\">Perfect compatibility match!</li>";
@@ -153,7 +153,9 @@ export function generateMatchFoundEmail(compatibilityScore: number, reasons: str
               <div style="font-size: 64px; margin-bottom: 20px;">💖🌹💖</div>
               <h2 style="margin: 0 0 20px 0; color: #850E35; font-size: 28px; font-weight: bold;">Your Perfect Match Awaits!</h2>
               <p style="margin: 0 0 30px 0; color: #666; font-size: 16px; line-height: 1.6;">
-                Great news! Our algorithm has found someone special for you! 💕<br>
+                ${isAdminMatch 
+                  ? "Great news! You've been matched with someone special by our admin team! 💕<br>"
+                  : "Great news! Our algorithm has found someone special for you! 💕<br>"}
                 You have a <strong style="color: #850E35;">${compatibilityScore}% compatibility</strong> match!
               </p>
               
@@ -168,13 +170,13 @@ export function generateMatchFoundEmail(compatibilityScore: number, reasons: str
               </div>
 
               <div style="margin: 40px 0;">
-                <a href="${websiteUrl}/match" style="display: inline-block; background: linear-gradient(135deg, #850E35 0%, #EE6983 100%); color: #FFFFFF; text-decoration: none; padding: 18px 40px; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 5px 20px rgba(238, 105, 131, 0.4); transition: all 0.3s;">
+                <a href="${websiteUrl}/signin" style="display: inline-block; background: linear-gradient(135deg, #850E35 0%, #EE6983 100%); color: #FFFFFF; text-decoration: none; padding: 18px 40px; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 5px 20px rgba(238, 105, 131, 0.4); transition: all 0.3s;">
                   🌹 Open Website & See Your Match 🌹
                 </a>
               </div>
 
               <p style="margin: 30px 0 0 0; color: #EE6983; font-size: 14px; font-weight: 600;">
-                Sign in to start chatting with your Ka-Label! 💌
+                Sign in to <a href="${websiteUrl}" style="color: #850E35; text-decoration: underline;">${websiteUrl}</a> to view your match and start chatting with your Ka-Label! 💌
               </p>
             </td>
           </tr>

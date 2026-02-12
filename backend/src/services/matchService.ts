@@ -126,7 +126,7 @@ export async function matchWaitingUsers() {
         
         // Send match found email with congratulations
         const { generateMatchFoundEmail } = await import("../templates/emailTemplates");
-        const websiteUrl = process.env.FRONTEND_URL || "http://localhost:3005";
+        const websiteUrl = process.env.FRONTEND_URL || "https://calebel.vercel.app";
         
         for (const row of userEmails.rows) {
           const email = row.profile?.email;

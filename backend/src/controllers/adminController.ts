@@ -470,21 +470,27 @@ export async function createMatch(req: Request, res: Response) {
       [userId1, userId2]
     );
 
-    const websiteUrl = process.env.FRONTEND_URL || "http://localhost:3005";
+    // Get user emails from users table
+    const userEmails = await query<{ id: string; email: string }>(
+      "SELECT u.id, up.profile->>'email' as email FROM users u JOIN user_profiles up ON u.id = up.user_id WHERE u.id IN ($1, $2)",
+      [userId1, userId2]
+    );
+
+    const websiteUrl = process.env.FRONTEND_URL || "https://calebel.vercel.app";
     const { generateMatchFoundEmail } = await import("../templates/emailTemplates");
     const { sendEmail } = await import("../services/emailService");
 
-    for (const row of userProfiles.rows) {
-      const email = row.profile?.email;
+    for (const row of userEmails.rows) {
+      const email = row.email;
       if (email) {
         try {
-          const emailHtml = generateMatchFoundEmail(finalScore, finalReasons, websiteUrl);
+          const emailHtml = generateMatchFoundEmail(finalScore, finalReasons, websiteUrl, true);
           await sendEmail(
             email,
-            "🎉 Congratulations! We Found Your Ka-Label! 💕",
+            "🎉 Congratulations! You've Been Matched by Admin! 💕",
             emailHtml
           );
-          console.log(`✅ Match notification email sent to: ${email}`);
+          console.log(`✅ Admin match notification email sent to: ${email}`);
         } catch (err) {
           console.error(`❌ Failed to send match email to ${email}:`, err);
           // Don't fail the match creation if email fails
