@@ -235,8 +235,11 @@ const RevealResult = () => {
                   <h2 className="font-display text-2xl md:text-3xl font-bold text-wine-rose mb-2">
                     Anonymous Meet-Up Card
                   </h2>
-                  <p className="text-wine-rose/70 text-sm md:text-base">
+                  <p className="text-wine-rose/70 text-sm md:text-base mb-2">
                     Since you both chose Secret Identity, meet via the SC Booth
+                  </p>
+                  <p className="text-xs font-semibold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full inline-block border border-amber-200">
+                    ⏰ Applicable only until Feb. 13, 2026, 5:00 PM
                   </p>
                 </div>
 
