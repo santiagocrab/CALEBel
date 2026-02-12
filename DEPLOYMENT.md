@@ -154,28 +154,58 @@ Click "Deploy" and wait for build to complete.
 
 **If you still see CORS errors after updating:**
 
-1. ✅ **Double-check the URL format**:
+1. ✅ **Verify backend redeployed**:
+   - Go to Render Dashboard → Your Backend Service → **"Events"** tab
+   - Make sure there's a recent deployment AFTER you saved the environment variables
+   - If not, manually trigger a redeploy: **"Manual Deploy"** → **"Deploy latest commit"**
+
+2. ✅ **Check backend logs in Render**:
+   - Go to Render Dashboard → Your Backend Service → **"Logs"** tab
+   - Look for these lines when the server starts:
+     ```
+     🌐 CORS Configuration:
+       - CORS_ORIGINS env var: https://calebel.vercel.app
+       - Parsed origins: [ 'https://calebel.vercel.app' ]
+     ```
+   - If you see `⚠️ CORS blocked origin: ...`, check what origin is being blocked
+   - If you see `* (allowing all)`, the CORS_ORIGINS variable is not being read
+
+3. ✅ **Test the health endpoint**:
+   - Visit: `https://calebel.onrender.com/health` in your browser
+   - You should see JSON with CORS configuration info
+   - Check if `cors.origins` shows your frontend URL
+
+4. ✅ **Double-check the URL format in Render**:
+   - Go to Render Dashboard → Your Backend Service → **"Environment"** tab
+   - Click on `CORS_ORIGINS` to edit it
    - ✅ Correct: `https://calebel.vercel.app`
    - ❌ Wrong: `https://calebel.vercel.app/` (trailing slash)
    - ❌ Wrong: `calebel.vercel.app` (missing https://)
    - ❌ Wrong: `http://calebel.vercel.app` (wrong protocol)
+   - ❌ Wrong: `"https://calebel.vercel.app"` (quotes - don't include quotes!)
+   - Make sure there are NO extra spaces before or after
 
-2. ✅ **Check backend logs in Render**:
-   - Go to Render Dashboard → Your Backend Service → **"Logs"** tab
-   - Look for: `🌐 CORS Origins configured: [ 'https://calebel.vercel.app' ]`
-   - If you see `⚠️ CORS blocked origin: ...`, the URL doesn't match
+5. ✅ **Temporary test - allow all origins**:
+   - In Render, set `CORS_ORIGINS` to `*` (just the asterisk, nothing else)
+   - Save and wait for redeploy
+   - Test if registration works now
+   - If it works with `*`, then the issue is the URL format
+   - ⚠️ **Change it back to your actual URL after testing!**
 
-3. ✅ **Wait for full redeploy**:
-   - After saving environment variables, wait 2-3 minutes for redeploy
+6. ✅ **Wait for full redeploy**:
+   - After saving environment variables, wait 2-3 minutes
    - Check "Events" tab to confirm deployment completed
+   - Look for "Deploy succeeded" message
 
-4. ✅ **Clear browser cache**:
+7. ✅ **Clear browser cache**:
    - Hard refresh: `Ctrl+Shift+R` (Windows) or `Cmd+Shift+R` (Mac)
-   - Or clear browser cache completely
+   - Or open in incognito/private window
 
-5. ✅ **Temporary workaround (for testing only)**:
-   - Set `CORS_ORIGINS` to `*` (allows all origins)
-   - ⚠️ **Only use this for testing!** Not recommended for production
+8. ✅ **Check for multiple CORS_ORIGINS entries**:
+   - In Render Environment tab, make sure you only have ONE `CORS_ORIGINS` variable
+   - If there are duplicates, delete the old ones
+
+**Still not working?** Check the backend logs for the exact origin being blocked and compare it character-by-character with your CORS_ORIGINS value.
 
 **Note**: Without updating `CORS_ORIGINS`, your frontend won't be able to communicate with the backend API and you'll see errors like:
 ```
