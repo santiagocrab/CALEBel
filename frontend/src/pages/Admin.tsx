@@ -57,6 +57,18 @@ interface Stats {
 }
 
 const Admin = () => {
+  const apiBase = import.meta.env.VITE_API_BASE_URL || "";
+  const resolveProofUrl = (proofUrl: string | null) => {
+    if (!proofUrl) return null;
+    if (proofUrl.startsWith("http://") || proofUrl.startsWith("https://")) {
+      return proofUrl;
+    }
+    if (proofUrl.startsWith("/uploads/")) {
+      return apiBase ? `${apiBase}${proofUrl}` : proofUrl;
+    }
+    return proofUrl;
+  };
+
   const [users, setUsers] = useState<User[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -483,7 +495,7 @@ const Admin = () => {
                           </div>
                           {user.paymentProofUrl && (
                             <a
-                              href={user.paymentProofUrl}
+                              href={resolveProofUrl(user.paymentProofUrl) || undefined}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-xs text-rose-pink hover:underline flex items-center gap-1"

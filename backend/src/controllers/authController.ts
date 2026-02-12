@@ -57,8 +57,10 @@ export async function requestSignIn(req: Request, res: Response) {
     );
     console.log("✅ Email sent successfully\n");
   } catch (emailError) {
-    console.log("⚠️  Email sending failed, but OTP code is still valid\n");
-    console.log("   You can still use the code above to sign in\n");
+    console.error("❌ Failed to send sign-in email:", emailError);
+    return res.status(503).json({
+      error: "Unable to send sign-in code right now. Please try again later."
+    });
   }
 
   return res.json({ sent: true, userId });

@@ -5,9 +5,12 @@ export function handleUpload(req: Request, res: Response) {
   if (!file) {
     return res.status(400).json({ error: "No file uploaded." });
   }
-  // Return full URL that frontend can use to display the image
-  // Also return relative path for backend storage
-  const apiBase = process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 4000}`;
+  // Build a public backend URL that works behind Render/Vercel proxies.
+  const forwardedProto = req.get("x-forwarded-proto");
+  const protocol = forwardedProto || req.protocol || "http";
+  const host = req.get("x-forwarded-host") || req.get("host");
+  const detectedBase = host ? `${protocol}://${host}` : `http://localhost:${process.env.PORT || 4000}`;
+  const apiBase = process.env.API_BASE_URL || process.env.BACKEND_URL || detectedBase;
   const fullUrl = `${apiBase}/uploads/${file.filename}`;
   const relativeUrl = `/uploads/${file.filename}`;
   

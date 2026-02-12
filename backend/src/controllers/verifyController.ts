@@ -71,7 +71,9 @@ export async function requestVerification(req: Request, res: Response) {
     console.log(`✅ OTP email sent successfully to ${email} for user ${userId}\n`);
   } catch (emailError) {
     console.error(`❌ Failed to send OTP email to ${email} for user ${userId}:`, emailError);
-    // Still return success since the code is generated and stored
+    return res.status(503).json({
+      error: "Unable to send verification email right now. Please try again later."
+    });
   }
 
   return res.json({ sent: true });
