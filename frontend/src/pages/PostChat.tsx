@@ -25,7 +25,7 @@ const PostChat = () => {
           borderColor: "border-amber-300",
           iconBg: "bg-amber-100",
           iconColor: "text-amber-600",
-          title: "🔄 RECALIBRATE",
+          title: "RECALIBRATE",
           desc: "Pay ₱15 to re-enter the matching pool and find a new Ka-Label.",
           price: "₱15.00",
           highlight: "New match guaranteed"
@@ -38,7 +38,7 @@ const PostChat = () => {
           borderColor: "border-gray-300",
           iconBg: "bg-gray-100",
           iconColor: "text-gray-600",
-          title: "⚫ END PARTICIPATION",
+          title: "END PARTICIPATION",
           desc: "Close this connection. You can still join future CALEBel events.",
           price: "Free",
           highlight: "No charge"
@@ -53,7 +53,7 @@ const PostChat = () => {
           borderColor: "border-emerald-300",
           iconBg: "bg-emerald-100",
           iconColor: "text-emerald-600",
-          title: "💚 REVEAL",
+          title: "REVEAL",
           desc: "Both must choose Reveal to share identities. See each other's full profile if mutual.",
           price: "Free",
           highlight: "Mutual reveal required"
@@ -66,7 +66,7 @@ const PostChat = () => {
           borderColor: "border-amber-300",
           iconBg: "bg-amber-100",
           iconColor: "text-amber-600",
-          title: "🔄 RECALIBRATE",
+          title: "RECALIBRATE",
           desc: "Not feeling it? Pay PHP 15 to re-enter the matching pool and try again with a new Ka-Label.",
           price: "₱15.00",
           highlight: "Blueprint update included"
@@ -79,7 +79,7 @@ const PostChat = () => {
           borderColor: "border-gray-300",
           iconBg: "bg-gray-100",
           iconColor: "text-gray-600",
-          title: "⚫ END CONNECTION",
+          title: "END CONNECTION",
           desc: "Close this connection entirely. No reveal, no rematch. You can still participate in future events.",
           price: "Free",
           highlight: "Final decision"
