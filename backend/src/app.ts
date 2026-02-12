@@ -83,8 +83,21 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Explicit OPTIONS handler for all routes (backup)
-app.options("*", cors(corsOptions));
+// Explicit OPTIONS handler for all routes (backup) - handle preflight requests
+app.options("*", (req, res) => {
+  const origin = req.headers.origin;
+  
+  // Check if origin should be allowed
+  if (!origin || allowAllOrigins || corsOrigins.includes("*") || corsOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin || "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept");
+    res.header("Access-Control-Allow-Credentials", "true");
+    return res.status(204).send();
+  }
+  
+  res.status(403).json({ error: "CORS not allowed" });
+});
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
